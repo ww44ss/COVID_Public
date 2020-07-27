@@ -809,7 +809,7 @@ This visualization shows places where current disease levels are below their pea
  
 
 
-```{r, warning = F, message = F, fig.align='center', fig.height =12, fig.width = 12, echo = F, eval = T}
+```{r, warning = F, message = F, fig.align='center', fig.height =7, fig.width = 9, echo = F, eval = T}
 
 
   data_x<-final_plot_data 
@@ -880,8 +880,7 @@ This visualization shows places where current disease levels are below their pea
              y=25, 
              label=str_c("ww44ss - ", today() ), size = 2.5,
              color="Grey30")+
-    scale_fill_manual(values = c("steelblue", "salmon")) +
-    facet_grid(control~.)
+    scale_fill_manual(values = c("steelblue", "salmon")) #+facet_grid(control~.)
     
   
   
@@ -1093,7 +1092,7 @@ p_total_cases <- ggplot(data = d_p, aes(x = date, y = total_cases) ) +
   labs(title = "US Total Cases", subtitle = today(), y = "cases")+ 
     annotate(geom="text", x=(max(d_p$date) - days(50)), #xend=(max(d_p$date) - days(25)),
              y=max(0.95*d_p$total_cases), 
-             label=str_c(max(d_p$total_cases), " total cases    "), size = 2.5,
+             label=str_c((max(d_p$total_cases)/100000)%>% round(2), " million cases    "), size = 3.0,
              color="steelblue4") +
   # annotate(geom="text", x=(max(d_p$date) - days(13)), #xend=(max(d_p$date) - days(25)),
   #            y=(1.4*d_p[d_p$date == max(d_p$date),]$total_active[1]), 
@@ -1108,7 +1107,7 @@ p1_daily <- ggplot(data = d_p, aes(x = date) ) +
   labs(title = "Daily US Cases", subtitle = today(), y = "cases")+ 
   annotate(geom="text", x=(max(d_p$date) - days(30)), 
              y=(0.85*d_p[d_p$date == max(d_p$date),]$daily_cases[1]), 
-             label=str_c((d_p[d_p$date == max(d_p$date),]$daily_cases2[1])%>%round(0), " daily cases"), size = 2.5,
+             label=str_c((d_p[d_p$date == max(d_p$date),]$daily_cases2[1]/1000000)%>%round(0), " cases    "), size = 3.0,
              color="steelblue4") +
   theme_bw()
 
@@ -1118,7 +1117,7 @@ p1_daily_deaths <- ggplot(data = d_p, aes(x = date) ) +
   labs(title = "Daily US Deaths (daily data and fit)", subtitle = today(), y = "deaths")+ 
   annotate(geom="text", x=(max(d_p$date) - days(40)), 
              y=(0.05*max(d_p$daily_deaths)), 
-             label=str_c("trend ", (d_p[d_p$date == max(d_p$date),]$daily_deaths[1])%>%round(0), "deaths daily"), size = 2.5,
+             label=str_c("trend ", (d_p[d_p$date == max(d_p$date),]$daily_deaths[1])%>%round(0), " deaths    "), size = 3.0,
              color="steelblue4") +
   theme_bw()
 
@@ -1130,7 +1129,7 @@ p_mortality <- ggplot(d_p,
   labs(title = "US Mortality Rate", subtitle = today(), y = "mortaility (%)")+
   annotate(geom="text", x=(max(d_p$date) - days(40)), 
              y=0.05*max(d_p$mortality), 
-             label=str_c((d_p[d_p$date == max(d_p$date),]$mortality[1])%>%round(2), "% mortality on ", max(d_p$date)), size = 3.5,
+             label=str_c((d_p[d_p$date == max(d_p$date),]$mortality[1])%>%round(2), "% mortality on ", max(d_p$date)), size = 3.0,
              color="steelblue4") +
   theme_bw()
 
@@ -1143,7 +1142,7 @@ p_daily_mortality <- ggplot(d_p,
   labs(title = "Daily Deaths/Cases", subtitle = today(), y = "mortaility (%)")+
   annotate(geom="text", x=(max(d_p$date) - days(40)), 
              y=0.05*max(d_p$daily_mortality), 
-             label=str_c((d_p[d_p$date == max(d_p$date),]$daily_mortality[1])%>%round(2), "% mortality"), size = 2.5,
+             label=str_c((d_p[d_p$date == max(d_p$date),]$daily_mortality[1])%>%round(2), "% mortality"), size = 3.0,
              color="steelblue4") +
   theme_bw()
 
@@ -1153,7 +1152,7 @@ p4 <- ggplot(d_p,
   labs(title = "Total US Deaths", subtitle = today(), y = "deaths")+
     annotate(geom="text", x=(max(d_p$date) - days(40)), 
              y=max(0.05*d_p$total_deaths), 
-             label=str_c(max(d_p$total_deaths), " deaths on ", max(d_p$date) ), size = 2.5,
+             label=str_c((max(d_p$total_deaths)/1000) %>% round(1), " thousand deaths  "), size = 3.0,
              color="steelblue4") +
   theme_bw()
 
@@ -1163,7 +1162,7 @@ p_dailycases <- ggplot(d_p,
   labs(title = "US Daily Cases", subtitle = today(), y = "cases")+
     annotate(geom="text", x=(max(d_p$date) - days(40)), 
              y=max(0.05*d_p$daily_cases), 
-             label=str_c(round(max(d_p$daily_cases),0), " max daily cases on ", max(d_p$date) ), size = 2.5,
+             label=str_c(round(max(d_p$daily_cases)/1000,2), " thousand cases    "), size = 3.0,
              color="steelblue4") +
   theme_bw()
 
@@ -1174,7 +1173,7 @@ p_r <- ggplot(d_p,
   scale_y_log10()+
   annotate(geom="text", x=(max(d_p$date) - days(40)), 
              y=0.85*max(d_p$r_fixed), 
-             label=str_c("R_e = ",(d_p[d_p$date == max(d_p$date),]$r_fixed[1])%>%round(2), " on ", max(d_p$date)), size = 3.5,
+             label=str_c("R_e = ",(d_p[d_p$date == max(d_p$date),]$r_fixed[1])%>%round(2)), size = 3.0,
              color="steelblue4") +
   theme_bw()
 
@@ -2687,7 +2686,7 @@ This document took `r round(difftime(t_end, t_start, units = "secs"), 1)` second
 
 
 ## version history    
-Today is `r today()`.    
+Today is `r today()`.     
 `r as.numeric(today()-ymd("2020-05-20"))` days ago: Multiple states.   
 `r as.numeric(today()-ymd("2020-05-28"))` days ago: $R_e$ computation.     
 `r as.numeric (today()-ymd("2020-05-31"))` days ago: created color coding for $R_e$ plots.    
@@ -2700,9 +2699,9 @@ Today is `r today()`.
 `r as.numeric (today()-ymd("2020-06-27"))` days ago: Deprecated national map.   
 `r as.numeric (today()-ymd("2020-07-01"))` days ago: added state "Hot 10" analysis.    
 `r as.numeric (today()-ymd("2020-07-06"))` days ago: cleaned up county analysis to show cases and actual data. Moved "Hot 10" analysis to separate web page. Moved "Hot 10" [here](https://rpubs.com/ww44ss/HOT_10).   
-`r as.numeric (today()-ymd("2020-07-08"))` days ago: added per capita disease and mortaility to state-level analysis. 
-`r as.numeric (today()-ymd("2020-07-20"))` days ago: changed to county boundarieson national map for per capita disease. 
-`r as.numeric (today()-ymd("2020-07-25"))` days ago: corrected factor of two error in death trend data. 
+`r as.numeric (today()-ymd("2020-07-08"))` days ago: added per capita disease and mortaility to state-level analysis.   
+`r as.numeric (today()-ymd("2020-07-20"))` days ago: changed to county boundarieson national map for per capita disease.   
+`r as.numeric (today()-ymd("2020-07-25"))` days ago: corrected factor of two error in death trend data.   
 
 
 # Appendix: Methods     
