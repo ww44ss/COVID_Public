@@ -34,8 +34,6 @@ library(scales)
 library(RcppRoll)
 library(ggmap)
 library(housingData)
-#library(rnaturalearth)
-#library(rnaturalearthdata)
 library(tools)
 library(rgeos)
 library(maps)
@@ -49,9 +47,8 @@ library(xtable)
 library(egg) 
 library(forcats)
 library(tidycensus)
-#library(ggrepel)
 library(prettydoc)
-#library(purrr)
+
 yo <- function(x){x}
 
 
@@ -363,9 +360,8 @@ file_name_date_append <- today() %>%
   str_replace_all(":", "_") %>%
   yo
 
-  #dir<-"C:/Users/wisaund/OneDrive - Microsoft/Documents/Github/NYTimesCovid"
 
-  saved_modified_files <- list.files("~/")
+  saved_modified_files <- list.files(getwd())
   
  
   
@@ -380,7 +376,7 @@ file_name_date_append <- today() %>%
   
   if(already_created){
     
-    final_plot_data <- read_csv(str_c("~/", file_name_date))
+    final_plot_data <- read_csv(str_c(getwd(),"/", file_name_date))
     
   }
    
