@@ -1063,7 +1063,7 @@ kable(state_list, align = c("l", rep("c", 3))) %>%
 
 ## Total & Active Cases, and Deaths   
 
-These trend charts show the national disease statistics. They're plotted against linear scales. While this hides some important details, the plots are more intuitively interpretable for most people. 
+These trend charts show the national disease statistics. The raw data are shown. since these showdaily trends that are systematically related ot the M-F work week, possibly due to reporting delays, numbers showsn
 
 ```{r, fig.height=6, fig.width=8, fig.align="center"}
 
@@ -1084,22 +1084,16 @@ d_p <- final_plot_data %>%
 
 p_total_cases <- ggplot(data = d_p, aes(x = date, y = total_cases) ) + 
   geom_line(size = 0.8, color = "grey40") +
- #geom_line(aes(x = date, y = total_active), color = "salmon", size = 1.5, alpha = 0.8)+
   labs(title = "US Total Cases", subtitle = today(), y = "cases")+ 
-    annotate(geom="text", x=(max(d_p$date) - days(50)), #xend=(max(d_p$date) - days(25)),
+    annotate(geom="text", x=(max(d_p$date) - days(50)), 
              y=max(0.95*d_p$total_cases), 
              label=str_c((max(d_p$total_cases)/100000)%>% round(2), " million cases    "), size = 3.0,
              color="steelblue4") +
-  # annotate(geom="text", x=(max(d_p$date) - days(13)), #xend=(max(d_p$date) - days(25)),
-  #            y=(1.4*d_p[d_p$date == max(d_p$date),]$total_active[1]), 
-  #            label=str_c(d_p[d_p$date == max(d_p$date),]$total_active[1], " active cases"), size = 2.5,
-  #            color="steelblue") +
   theme_bw()
 
  
 p1_daily <- ggplot(data = d_p, aes(x = date) ) + 
-  #geom_line(size = 0.8, color = "grey40") +
- geom_line(aes(x = date, y = daily_cases2), color = "#891815", size = 1.0, alpha = 0.8)+
+ geom_line(aes(x = date, y = daily_cases2), color = "#891815", size = 0.8, alpha = 0.8)+
   labs(title = "Daily US Cases", subtitle = today(), y = "cases")+ 
   annotate(geom="text", x=(max(d_p$date) - days(30)), 
              y=(0.85*d_p[d_p$date == max(d_p$date),]$daily_cases[1]), 
@@ -1113,7 +1107,7 @@ p1_daily_deaths <- ggplot(data = d_p, aes(x = date) ) +
   labs(title = "Daily US Deaths (daily data and fit)", subtitle = today(), y = "deaths")+ 
   annotate(geom="text", x=(max(d_p$date) - days(40)), 
              y=(0.05*max(d_p$daily_deaths)), 
-             label=str_c("trend ", (d_p[d_p$date == max(d_p$date),]$daily_deaths[1])%>%round(0), " deaths    "), size = 3.0,
+             label=str_c("trend ", (d_p[d_p$date == max(d_p$date),]$daily_deaths[1])%>%round(0), " daily deaths    "), size = 3.0,
              color="steelblue4") +
   theme_bw()
 
@@ -1142,7 +1136,7 @@ p_daily_mortality <- ggplot(d_p,
              color="steelblue4") +
   theme_bw()
 
-p4 <- ggplot(d_p, 
+p_total_deaths <- ggplot(d_p, 
        aes(x = date, y = total_deaths)
          ) + geom_line(color = "#A46242", size = 1, alpha = 0.8) + 
   labs(title = "Total US Deaths", subtitle = today(), y = "deaths")+
@@ -1154,11 +1148,13 @@ p4 <- ggplot(d_p,
 
 
 p_dailycases <- ggplot(d_p,
-                       aes(x = date, y = daily_cases)) + geom_line(color = "#2462A2", size = 1, alpha = 0.8) + 
+                       aes(x = date, y = daily_cases2))  +
   labs(title = "US Daily Cases", subtitle = today(), y = "cases")+
+  geom_col(color = "grey80", width = 0.7, alpha = 0.5) +
+  geom_line(aes(y = daily_cases), color = "#2462A2", size = 1.1, alpha = 1) + 
     annotate(geom="text", x=(max(d_p$date) - days(40)), 
-             y=max(0.05*d_p$daily_cases), 
-             label=str_c(round(max(d_p$daily_cases)/1000,2), " thousand cases    "), size = 3.0,
+             y=max(0.95*d_p$daily_cases), 
+             label=str_c(round(max(d_p$daily_cases)/1000,2), " thousand daily cases    "), size = 3.0,
              color="steelblue4") +
   theme_bw()
 
@@ -1175,7 +1171,7 @@ p_r <- ggplot(d_p,
 
 
 
-grid.arrange(p_total_cases, p_dailycases, p4, p1_daily_deaths,  nrow = 2)
+grid.arrange(p_total_cases, p_dailycases, p_total_deaths, p1_daily_deaths,  nrow = 2)
 
 
 ```
@@ -1190,7 +1186,7 @@ grid.arrange(p_mortality,nrow = 1)
 ```
 
 
-# National Reproduction Rates $R_e$      
+# National $R_e$      
 
 There is also large variation in the distribution of $R_e$ values. This shows how that distribution has changed over the last three weeks. As a reminder, for disease reduction, $R_e$ needs to be sustained below 1.0.   
 
@@ -1207,9 +1203,9 @@ grid.arrange(p_r,nrow = 1)
 ```
 
 ## Distribution of $R_e$ Values    
-```{r, fig.height=4, fig.width=7, fig.align="center"}
+```{r, fig.height=3.5, fig.width=6, fig.align="center"}
 data_x <- final_plot_data %>%
-  filter(date == max(date) | date == ymd("2020-06-01")| date == ymd("2020-04-15")) %>%
+  filter(date == max(date) | date == ymd("2020-06-01")| date == ymd("2020-04-15")| date == ymd("2020-07-15")) %>%
   filter(is.finite(r_fixed)) %>%
   mutate(date = as.factor(date))%>%
   filter(r_fixed < 3 & r_fixed>0)%>%
@@ -1217,8 +1213,8 @@ data_x <- final_plot_data %>%
   yo
 
 
-ggplot(data_x, aes(r_fixed,y=..density.., fill = date)) + geom_histogram(bins =30 , position = "dodge") + geom_density(alpha = 0.2, bw = .14) + 
-  scale_fill_manual(values = c("steelblue2", "palegreen", "salmon")) + labs(title = "R_e distribution for all US Counties", y = "density", x = "R_e") +theme_bw() + scale_x_log10()
+ggplot(data_x, aes(r_fixed,y=..density.., fill = date)) + geom_histogram(bins =30 , position = "dodge") + geom_density(alpha = 0.2, bw = .04) + 
+  scale_fill_manual(values = c("beige","steelblue2", "palegreen", "salmon")) + labs(title = "R_e distribution for all US Counties", y = "density", x = "R_e") +theme_bw() + scale_x_log10()
 
 
 ```
