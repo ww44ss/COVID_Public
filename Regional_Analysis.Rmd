@@ -223,6 +223,18 @@ for(fips_x in fips_list) {
     bind_cols(sorted_deaths_vector) %>%
     yo
   
+  fips_data_last_row <- fips_data %>%
+    slice_tail
+  
+  ## add 5 rows to stabilize endpoint of fit.
+  
+  
+  fips_data <- fips_data %>%
+    mutate(n = row_number()) %>%
+    yo
+  
+  
+  
   fips_data <- fips_data %>%
     mutate(n = row_number()) %>%
     yo
@@ -236,9 +248,10 @@ for(fips_x in fips_list) {
     mutate(log_deaths = log2(deaths+1)) %>% 
     yo
 
-  spline_model_cases <- smooth.spline(x = fips_data$n, y = fips_data$log_cases, spar = 0.65)
-  spline_model_deaths <- smooth.spline(x = fips_data$n, y = fips_data$log_deaths, spar = 0.65)
+  spline_model_cases <- smooth.spline(x = fips_data$n, y = fips_data$log_cases, spar = 0.5)
+  spline_model_deaths <- smooth.spline(x = fips_data$n, y = fips_data$log_deaths, spar = 0.5)
   
+  ## experiment with reducing spar from 0.65 to 0.5
   
   ## use model to backward predict cases so windowed sum works
   
@@ -282,6 +295,9 @@ for(fips_x in fips_list) {
 
   
   ## compute R_e
+  
+  fips_data <- fips_data %>% slice(1:n())
+  
   temp_fips_data <- fips_data %>%
     left_join(backward_prediction2, by = "n") %>%
     filter(cases > 10) %>%
@@ -796,95 +812,7 @@ q1
 ```
      
 
-## Contained and Uncontained Disease  
-  
-A key indicator of mitigation is capping infection. Uncontained disease growth threatens epidemic conditions.          
 
-
-This visualization shows places where current disease levels are below their peak levels ('contained") and where current disease levels are at an all time high ("uncontained").     
- 
-
-
-```{r, warning = F, message = F, fig.align='center', fig.height =7, fig.width = 9, echo = F, eval = T}
-
-
-  data_x<-final_plot_data 
-  
-  bbox <- make_bbox(lat = lat, lon = lon, data = data_x, f = .1)
-  
-  c_lat <- (bbox[2] + bbox[4])/2
-  c_lon <- (bbox[1] + bbox[3])/2 
-  
-  range_lat = abs(bbox[2] - bbox[4])
-  range_lon = abs(bbox[1] - bbox[3])
-  
-  bbox_us <- bbox
-  
- 
- state_abb <- bind_cols(state = state.name, ST = state.abb)
-  
-  
-  plot_colors <- c(brewer.pal(n = 8, name = "YlGnBu"))
-  
-  
-  
-  states <- st_as_sf(map("state", plot = FALSE, fill = TRUE)) %>%
-    mutate(state = toTitleCase(ID)) %>%
-    left_join(state_abb, by = "state") %>%
-    yo
-  
-  states_cache<-states
-  
-  
-  data_x <- data_x %>%
-    group_by(county, state) %>%
-    filter(rolling_baseline_14 == max(rolling_baseline_14)) %>%
-    arrange(desc(date)) %>%
-    mutate(count = row_number()) %>%
-    filter(count == 1) %>%
-    select(-count) %>%
-    ungroup()%>%
-    mutate(control = ifelse(date <  (today() - days(7)),"CONTAINED" ,"UNCONTAINED")) %>%
-    yo
-    
-  p <- 
-    ggplot() + 
-    geom_sf(data = states , fill = "#E5D9CC88", color = "white", size = 1.0) + 
-    coord_sf(xlim = c(as.numeric(bbox[1]), as.numeric(bbox[3])), ylim = c(as.numeric(bbox[2]), as.numeric(bbox[4])), expand = FALSE) + 
-    theme_bw()
-
-  
-  q1 <- p + geom_point(data = data_x, 
-                      aes(x = lon, y = lat, size = rolling_baseline_14, 
-                          group = fips, fill = control), pch=21, alpha = 0.5, color = "grey20") + 
-    theme(legend.position="top") +
-    xlim(bbox[1], bbox[3]) +
-    ylim(bbox[2], bbox[4])+
-    scale_size_continuous( breaks=c(8, 64, 512, 4096, 32768), range = c(1, 40), name = "cases at peak")+ theme_bw()+
-    theme(axis.title.x=element_blank(),
-          axis.text.x=element_blank(),
-          axis.ticks.x=element_blank(),
-          axis.title.y=element_blank(),
-          axis.text.y=element_blank(),
-          axis.ticks.y=element_blank(),
-          panel.grid.major = element_blank(), 
-          panel.grid.minor = element_blank(),
-          strip.text = element_text(color = "#154555", size = 14, face = "bold")) +
-    labs(title = str_c("CONTAINED AND UNCONTAINED DISEASE ", today()),
-         subtitle = "circle indicates active cases at peak") +
-     annotate(geom="text", x=-70, 
-             y=25, 
-             label=str_c("ww44ss - ", today() ), size = 2.5,
-             color="Grey30")+
-    scale_fill_manual(values = c("steelblue", "salmon")) #+facet_grid(control~.)
-    
-  
-  
-  
-q1
-
-
-```
 
 ## Reproduction and Control 
 
@@ -900,7 +828,11 @@ $$ control = 100 \times (1 - \frac{active \space disease}{max(active \space dise
 
 ## plot reproduction rate
 
-states <- states_cache %>% filter(!is.na(ST))
+
+
+states_cache <- states %>% filter(!is.na(ST))
+
+states <- states_cache
 
   plot_colors <- c(brewer.pal(n = 11, name = "RdYlGn")[1:9], "#3392B2", "#1133C5")
   plot_colors <- plot_colors[-c(1,(6:7))]
@@ -1022,6 +954,101 @@ states <- states %>%
     
 ```
 
+This is the same computation at a County level
+<br/>
+
+```{r, warning = F, message = F, fig.align='center', fig.height =6, fig.width = 9, echo = F, eval = T}
+
+## per capita cases
+
+  data_x<-final_plot_data   
+   
+  bbox <- make_bbox(lat = lat, lon = lon, data = data_x, f = .1)
+  
+  c_lat <- (bbox[2] + bbox[4])/2
+  c_lon <- (bbox[1] + bbox[3])/2 
+  
+  range_lat = abs(bbox[2] - bbox[4])
+  range_lon = abs(bbox[1] - bbox[3])
+  
+ bbox_us<-bbox
+  
+ state_abb <- bind_cols(state = state.name, ST = state.abb)
+  
+  
+plot_colors <- c(brewer.pal(n = 11, name = "RdYlGn")[1:9], "#3392B2", "#1133C5")
+plot_colors <- plot_colors[-c(1,(6:7))]
+  
+  
+  states <- st_as_sf(map("state", plot = FALSE, fill = TRUE)) %>%
+    mutate(state = toTitleCase(ID)) %>%
+    left_join(state_abb, by = "state") %>%
+    yo
+  
+  
+  counties <- st_as_sf(map("county", plot = FALSE, fill = TRUE)) %>%
+    mutate(state = ID%>%str_extract("[\\s\\S]*(?=,)")%>%toTitleCase())%>%
+    mutate(county = ID%>%str_extract("(?<=,).{1,}")%>%toTitleCase())%>%
+    left_join(state_abb, by = "state") %>%
+    yo
+  
+  NYC_data <- final_plot_data %>%filter(ST == "NY" & county == "New York City")
+  Kings_data <- NYC_data %>% mutate(county = "Kings")
+  Queens_data <- NYC_data %>% mutate(county = "Queens")
+  Bronx_data <- NYC_data %>% mutate(county = "Bronx")
+  NY_data <- NYC_data %>% mutate(county = "New York")
+  Richmond_data <- NYC_data %>% mutate(county = "Richmond")
+  
+  
+  max_date = max(final_plot_data$date)
+  date_display <- max_date
+  
+  
+  data_max <- final_plot_data %>%
+    filter(!(county == "New York City")) %>%
+    bind_rows(Kings_data, Queens_data, Bronx_data, NY_data, Richmond_data) %>%
+    group_by(county, state) %>%
+    mutate(control = 100*(1-rolling_baseline_14/(max(rolling_baseline_14)+1))) %>%
+    filter(date == max_date) %>%
+    select(state, ST, county, control, date) %>%
+    yo
+  
+  
+  counties_max <- counties %>%
+    left_join(data_max, by = c("county", "state", "ST")) %>%
+    mutate(date = ifelse(!is.na(date), date, max_date)) %>%
+    mutate(date = as_date(date)) %>%
+    mutate(per_capita = ifelse(!(is.na(control)), control, 100)) %>%
+    yo
+
+
+  
+    ggplot(crs = st_crs(102003)) + 
+    geom_sf(data = counties_max, aes(geometry = geom, fill = per_capita), color = "#DDDDCC77", size = 0.2 ) + 
+    coord_sf(xlim = c(as.numeric(bbox[1]), as.numeric(bbox[3])), ylim = c(as.numeric(bbox[2]), as.numeric(bbox[4])), expand = FALSE) + 
+    scale_fill_gradientn(colors =plot_colors, name = "Control (%)", limits = c(0, 100)) + 
+    theme_bw() +
+    theme(axis.title.x=element_blank(),
+          axis.text.x=element_blank(),
+          axis.ticks.x=element_blank(),
+          axis.title.y=element_blank(),
+          axis.text.y=element_blank(),
+          axis.ticks.y=element_blank(),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          strip.text = element_text(color = "#154555", size = 12, face = "bold")) +
+    labs(title = str_c('COUNTY COVID-19 CONTROL : ', date_display),
+         subtitle=str_c("NYTimes COVID19 Database"), "color = cases/100k") +
+     annotate(geom="text", x=-70,
+             y=25,
+             label=str_c("ww44ss - ", today() ), size = 2.5,
+             color="Grey30")
+    
+
+
+```
+
+<br/>
 <center>
 
 ```{r,  fig.align='center'}
@@ -1246,7 +1273,7 @@ There are four components:
 ## output:  a ggplot object
 ##
 
-Region_Plot <- function(data_x = final_plot_data, state_y = c("WA", "OR", "CA"))
+Region_Plot <- function(data_x = final_plot_data, state_y = c("WA", "OR"))
 
 {
   
@@ -1486,8 +1513,9 @@ daily_case_plot <- ggplot(plot_x,
 
 total_case_plot <- ggplot(final_plot_data %>% filter(county == county_x & ST == state_x), 
        aes(y = cases, x = date) ) + 
-    geom_point(aes(y = orig_cases), fill = "grey10", color = "grey80", alpha = 0.5, size = 2.0, pch = 21)+
-  geom_line(size = 2.5, color = "steelblue3", alpha = 0.4) +
+    geom_line(size = 2.0, color = "beige", alpha = 0.5) +
+    geom_point(aes(y = orig_cases), fill = "steelblue3", color = "steelblue1", alpha = 0.5, size = 1.0, pch = 21)+
+
     ylim(0, NA) +
     xlim(ymd("2020-03-01"), NA)+
   theme_bw() + 
@@ -1532,7 +1560,13 @@ d_p <- data_x %>%
   filter(ST %in% state_y) %>%
   ungroup()%>%
   group_by(date, state) %>%
-  summarize(total_cases = sum(orig_cases), total_daily = sum(daily_cases), total_active = sum(rolling_baseline_14), total_deaths = sum(deaths), population = sum(population)) %>%
+  summarize(total_cases = sum(orig_cases), total_daily = sum(daily_cases), total_active = sum(rolling_baseline_14), total_deaths = sum(deaths), smoothed_deaths = sum(smoothed_deaths), population = sum(population)) %>%
+  ungroup()%>%
+  group_by(state)%>%
+  arrange(date) %>%
+  mutate(orig_daily = total_cases - dplyr::lag(total_cases,1)) %>%
+  mutate(daily_deaths = total_deaths - dplyr::lag(total_deaths,1)) %>%
+  mutate(smoothed_daily_deaths = smoothed_deaths - dplyr::lag(smoothed_deaths)) %>%
   mutate(r_e = 12*total_daily/total_active) %>%
   filter(total_deaths >= 1) %>%
   ungroup() %>%
@@ -1543,7 +1577,8 @@ d_c <- data_x %>%
   filter(ST %in% state_y, date == max(date)) %>%
   ungroup()%>%
   group_by(state, county) %>%
-  summarize(total_cases = sum(orig_cases), total_daily = sum(daily_cases), total_active = sum(rolling_baseline_14), total_deaths = sum(deaths)) %>%
+  mutate(orig_daily = orig_cases - lag(orig_cases)) %>%
+  summarize(total_cases = sum(orig_cases), total_daily = sum(daily_cases), total_active = sum(rolling_baseline_14), total_deaths = sum(deaths), orig_daily = sum(orig_daily)) %>%
   mutate(r_e = 12*total_daily/total_active) %>%
   mutate(r_e = ifelse(r_e>3.0, 3.0, r_e)) %>%
   mutate(r_e = ifelse(r_e<0.33, 0.33, r_e)) %>%
@@ -1580,12 +1615,13 @@ p_daily_cases_per_capita <-  ggplot(data = d_p, aes(x = date, y = 100000*total_d
 
 
 
-p_daily_cases <-  ggplot(data = d_p, aes(x = date, color = state))  + 
- geom_line(aes(x = date, y = total_daily, color = state), linetype = 1, size = 1, alpha = 0.8)+
+p_daily_cases <-  ggplot(data = d_p, aes(x = date))  + 
+ 
+  geom_point(aes(x = date, y = orig_daily), color = "gray80",size = 1.5, alpha = 0.2)+
+  geom_line(aes(x = date, y = total_daily, color = state), linetype = 1, size = 1.5, alpha = 1)+
   labs(title = "Daily Cases", y = "cases") +  
-  scale_color_brewer(palette="Dark2")+ 
-  #scale_y_log10() +
-  theme_bw()+ theme(legend.position="none")
+  scale_color_brewer(palette="Dark2") + 
+  theme_bw()+ theme(legend.position="none")  
 
 
 p_persist <- ggplot(d_p, 
@@ -1602,6 +1638,17 @@ p_total_deaths <- ggplot(d_p,
        aes(x = date, y = total_deaths, color = state)
          ) + geom_line(size = 1.5, alpha = 0.8) + 
   labs(title = "Total Deaths", y = "deaths")+
+  scale_color_brewer(palette="Dark2")+
+  #scale_y_log10() +
+  theme_bw()+ theme(legend.position="none")
+
+
+p_daily_deaths <- ggplot(d_p, 
+       aes(x = date)
+         ) +
+  geom_point(aes(y = daily_deaths), color = "grey80", size = 1.5)+
+  geom_line(aes(y = smoothed_daily_deaths, color = state), size = 1.5, alpha = 0.8) + 
+  labs(title = "Daily Deaths", y = "daily deaths")+
   scale_color_brewer(palette="Dark2")+
   #scale_y_log10() +
   theme_bw()+ theme(legend.position="none")
@@ -1636,7 +1683,7 @@ p_re <- ggplot(d_p,
 
 
 
-grid.arrange(p_total_cases, p_daily_cases, county_hist, p_re, p_mortality, p_daily_cases_per_capita, nrow = 3)
+grid.arrange(p_total_cases, p_daily_cases, county_hist, p_re, p_mortality, p_daily_deaths, nrow = 3)
 
 
 
@@ -2694,6 +2741,7 @@ Today is `r today()`.
 `r as.numeric (today()-ymd("2020-07-08"))` days ago: added per capita disease and mortaility to state-level analysis.   
 `r as.numeric (today()-ymd("2020-07-20"))` days ago: changed to county boundarieson national map for per capita disease.   
 `r as.numeric (today()-ymd("2020-07-25"))` days ago: corrected factor of two error in death trend data.   
+`r as.numeric (today()-ymd("2020-07-29"))` days ago: removed "contained and uncontained" analysis, replacing it with county level control map.     
 
 
 # Appendix: Methods     
