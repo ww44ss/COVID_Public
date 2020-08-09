@@ -250,7 +250,7 @@ for(fips_x in fips_list) {
     yo
 
   spline_model_cases <- smooth.spline(x = fips_data$n, y = fips_data$log_cases, spar = 0.5)
-  spline_model_deaths <- smooth.spline(x = fips_data$n, y = fips_data$log_deaths, spar = 0.5)
+  spline_model_deaths <- smooth.spline(x = fips_data$n, y = fips_data$log_deaths, spar = 0.65)
   
   ## experiment with reducing spar from 0.65 to 0.5
   
@@ -303,7 +303,7 @@ for(fips_x in fips_list) {
     left_join(backward_prediction2, by = "n") %>%
     filter(cases > 10) %>%
     mutate(r_e = (daily_cases/(rolling_baseline_14+.1)*12)) %>%
-    mutate(r_e_deaths = (daily_deaths/(rolling_baseline_deaths+1)*12)) %>%
+    mutate(r_e_deaths = (daily_deaths/(rolling_baseline_deaths+.1)*12)) %>%
     yo
   
   temp_fips_data<-temp_fips_data[complete.cases(temp_fips_data),] %>% select(fips, date, lat, lon, county, state, ST, cases, deaths, n, smoothed_cases, smoothed_deaths, daily_cases, daily_deaths, rolling_baseline_14, rolling_baseline_deaths, r_e, r_e_deaths)
@@ -1335,35 +1335,33 @@ grid.arrange(p_total_cases, p_dailycases, p_total_deaths, p1_daily_deaths,  nrow
 ## Mortality Trend       
 
 
-```{r, fig.height=4, fig.width=7, fig.align="center"}
+```{r, fig.height=4, fig.width=6, fig.align="center"}
 grid.arrange(p_mortality,nrow = 1)
 
 ```
 
-
-# National $R_e$      
-
-There is also large variation in the distribution of $R_e$ values. This shows how that distribution has changed over the last three weeks. As a reminder, for disease reduction, $R_e$ needs to be sustained below 1.0.   
+  
 
 
+## $R_e$ Trend   
 
-## Distribtion Trend    
+National effective reproduction rate 
 
-
-
-
-```{r, fig.height=4, fig.width=7, fig.align="center"}
+```{r, fig.height=4, fig.width=6, fig.align="center"}
 grid.arrange(p_r,nrow = 1)
 
 ```
 
 ## Distribution of $R_e$ Values    
+
+Howver, there is a wiude dirstubtion of $R_e$ across regions and counties.  The distributions in the graph below looks roughly symmetrical because the x-scale is logarithmic.  
+
 ```{r, fig.height=3.5, fig.width=6, fig.align="center"}
 data_x <- final_plot_data %>%
   group_by(county, date) %>%
   mutate(control = 100*(1 - rolling_baseline_14/max(rolling_baseline_14))) %>%
   ungroup()%>%
-  filter(date == max(date) | date == ymd("2020-06-22")| date == ymd("2020-07-15")) %>%
+  filter(date == max(date) | date == ymd("2020-06-22")| date == ymd("2020-05-07")) %>%
   filter(is.finite(r_e)) %>%
   mutate(date = as.factor(date))%>%
   filter(r_e < 3 & r_e>0)%>%
@@ -1376,7 +1374,8 @@ ggplot(data_x, aes(r_e,y=..density.., fill = date)) + geom_histogram(bins =30 , 
 
 ```
 
-## Distribution of Baseline Control
+## Distribution of *Baseline Control*
+Similarly for disease control, when take at the county level, there is a wide distribution of *Baseline Control*. 
 
 ```{r, fig.height=3.5, fig.width=6, fig.align="center"}
 
@@ -1385,16 +1384,23 @@ data_x <- final_plot_data %>%
   group_by(county, date) %>%
   mutate(control = 100*(1 - rolling_baseline_14/max(rolling_baseline_14))) %>%
   ungroup()%>%
-  filter(date == max(date) | date == ymd("2020-07-15")) %>%
+  filter(date == max(date) | date == ymd("2020-07-15")| date == ymd("2020-05-18")) %>%
   filter(is.finite(r_e)) %>%
   mutate(date = as.factor(date))%>%
   filter(r_e < 3 & r_e>0)%>%
   select(r_e, date, control) %>%
   yo
 
-ggplot(data_x, aes(x = control, fill = date)) + geom_bar(stat = "bin", position = "dodge", bins =10, color = "transparent") + #geom_density(alpha = 0.2, bw = .04) + 
-  scale_fill_manual(values =  c("palegreen","steelblue2", "salmon")) + labs(title = TeX("$Baseline Control$ distribution for US Counties"), y = "count", x = "control (%)") +theme_bw() 
 
+
+# ggplot(data_x, aes(x = control, fill = date)) + geom_bar(stat = "bin", position = "dodge", bins =10, color = "transparent") + #geom_density(alpha = 0.2, bw = .04) + 
+#   scale_fill_manual(values =  c("palegreen","steelblue2", "salmon")) + labs(title = TeX("$Baseline Control$ distribution for US Counties"), y = "count", x = "control (%)") +theme_bw() 
+# 
+
+
+
+ggplot(data_x, aes(control,y=..density.., fill = date)) + geom_histogram(bins =5 , position = "dodge", color = "white") + #geom_density(alpha = 0.2, bw = .04) + 
+  scale_fill_manual(values = c("steelblue2", "lightgreen", "salmon")) + labs(title = TeX("$Baseline \\, Control$ distribution for US Counties"), y = "density", x = "control (%)") +theme_bw() + scale_x_continuous(breaks=c(0, 25, 50, 75, 100))
 
 ```
 
