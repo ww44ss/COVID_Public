@@ -250,17 +250,16 @@ for(fips_x in fips_list) {
     yo
 
   spline_model_cases <- smooth.spline(x = fips_data$n, y = fips_data$log_cases, spar = 0.5)
-  spline_model_deaths <- smooth.spline(x = fips_data$n, y = fips_data$log_deaths, spar = 0.65)
+  spline_model_deaths <- smooth.spline(x = fips_data$n, y = fips_data$log_deaths, spar = 0.7)
   
-  ## experiment with reducing spar from 0.65 to 0.5
   
   ## use model to backward predict cases so windowed sum works
   
   nmax = max(fips_data$n)
-  backward_prediction <- predict(spline_model_cases, x = -30:nmax)
+  backward_prediction <- predict(spline_model_cases, x = -15:nmax)
   backward_prediction_1 <- tibble(n = backward_prediction$x, log_predicted_cases = backward_prediction$y)
   
-  backward_prediction <- predict(spline_model_deaths, x = -30:nmax)
+  backward_prediction <- predict(spline_model_deaths, x = -15:nmax)
   backward_prediction_2 <- tibble(n = backward_prediction$x, log_predicted_deaths = backward_prediction$y)
   
   ## combine the predicitons.
@@ -268,15 +267,15 @@ for(fips_x in fips_list) {
   
   ## compute growth rates
   backward_prediction2 <- backward_prediction %>%
-    mutate(smoothed_cases = 2^log_predicted_cases) %>%
-    mutate(smoothed_deaths = 2^(log_predicted_deaths)) %>%
+    mutate(smoothed_cases = 2^log_predicted_cases - 1) %>%
+    mutate(smoothed_deaths = 2^(log_predicted_deaths)-1) %>%
     
     mutate(daily_cases = smoothed_cases - lag(smoothed_cases)) %>%
     mutate(daily_deaths = smoothed_deaths - lag(smoothed_deaths)) %>%
     mutate(daily_cases = ifelse(daily_cases<0.001, 0.001, daily_cases)) %>%
-    mutate(daily_cases = ifelse(is.na(daily_cases), 0, daily_cases)) %>%
+    mutate(daily_cases = ifelse(is.na(daily_cases), 0.01, daily_cases)) %>%
     mutate(daily_deaths = ifelse(daily_deaths<0.001, 0.001, daily_deaths)) %>%
-    mutate(daily_deaths = ifelse(is.na(daily_deaths), 0, daily_deaths)) %>%
+    mutate(daily_deaths = ifelse(is.na(daily_deaths), 0.01, daily_deaths)) %>%
     
     mutate(daily_cases = daily_cases %>% round(1)) %>%
     mutate(daily_deaths = daily_deaths %>% round(1)) %>%
@@ -1072,7 +1071,7 @@ plot_colors <- plot_colors[-c(1,(6:7))]
 
 ## r_e at county level map
 
-  data_x<-final_plot_data   
+  #data_x<-final_plot_data   
    
   bbox <- make_bbox(lat = lat, lon = lon, data = data_x, f = .1)
   
@@ -1089,6 +1088,7 @@ plot_colors <- plot_colors[-c(1,(6:7))]
   
 plot_colors <- c(brewer.pal(n = 11, name = "RdYlGn")[1:9], "#3392B2", "#1133C5")
 plot_colors <- plot_colors[-c(1,(6:7))]
+plot_colors <- rev(plot_colors)
   
   
   states <- st_as_sf(map("state", plot = FALSE, fill = TRUE)) %>%
@@ -1671,7 +1671,7 @@ daily_case_plot <- ggplot(plot_x,
 
 total_case_plot <- ggplot(final_plot_data %>% filter(county == county_x & ST == state_x), 
        aes(y = cases, x = date) ) + 
-    geom_line(size = 2.0, color = "beige", alpha = 0.5) +
+    geom_line(size = 2.0, color = "salmon1", alpha = 0.5) +
     geom_point(aes(y = orig_cases), fill = "steelblue3", color = "steelblue1", alpha = 0.5, size = 1.0, pch = 21)+
 
     ylim(0, NA) +
