@@ -249,7 +249,7 @@ for(fips_x in fips_list) {
     mutate(log_deaths = log2(deaths+1)) %>% 
     yo
 
-  spline_model_cases <- smooth.spline(x = fips_data$n, y = fips_data$log_cases, spar = 0.5)
+  spline_model_cases <- smooth.spline(x = fips_data$n, y = fips_data$log_cases, spar = 0.)
   spline_model_deaths <- smooth.spline(x = fips_data$n, y = fips_data$log_deaths, spar = 0.7)
   
   
@@ -1671,7 +1671,7 @@ daily_case_plot <- ggplot(plot_x,
 
 total_case_plot <- ggplot(final_plot_data %>% filter(county == county_x & ST == state_x), 
        aes(y = cases, x = date) ) + 
-    geom_line(size = 2.0, color = "salmon1", alpha = 0.5) +
+    geom_line(size = 2.5, color = "salmon1", alpha = 0.5) +
     geom_point(aes(y = orig_cases), fill = "steelblue3", color = "steelblue1", alpha = 0.5, size = 1.0, pch = 21)+
 
     ylim(0, NA) +
