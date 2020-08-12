@@ -249,7 +249,7 @@ for(fips_x in fips_list) {
     mutate(log_deaths = log2(deaths+1)) %>% 
     yo
 
-  spline_model_cases <- smooth.spline(x = fips_data$n, y = fips_data$log_cases, spar = 0.)
+  spline_model_cases <- smooth.spline(x = fips_data$n, y = fips_data$log_cases, spar = 0.65)
   spline_model_deaths <- smooth.spline(x = fips_data$n, y = fips_data$log_deaths, spar = 0.7)
   
   
