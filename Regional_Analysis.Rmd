@@ -649,7 +649,8 @@ q1
     yo
 
   
-    ggplot(crs = st_crs(102003)) + 
+    #per_capita_cases_plot <- 
+  ggplot(crs = st_crs(102003)) + 
     geom_sf(data = counties , aes(geometry = geom, fill = per_capita), color = "#DDDDCC77", size = 0.2 ) + 
     coord_sf(xlim = c(as.numeric(bbox[1]), as.numeric(bbox[3])), ylim = c(as.numeric(bbox[2]), as.numeric(bbox[4])), expand = FALSE) + 
     scale_fill_gradientn(colors =plot_colors, name = "cases/100k") +
@@ -668,8 +669,7 @@ q1
      annotate(geom="text", x=-70,
              y=25,
              label=str_c("ww44ss - ", today() ), size = 2.5,
-             color="Grey30") #+
-    #facet_grid(date~.)
+             color="Grey30") 
     
 
 
@@ -784,7 +784,8 @@ q1
  
   
   
-    ggplot(crs = st_crs(102003)) + 
+    #per_capita_deaths_plot <-
+      ggplot(crs = st_crs(102003)) + 
     geom_sf(data = counties , aes(geometry = geom, fill = per_capita), color = "#DDDDCC77", size = 0.2 ) + 
     coord_sf(xlim = c(as.numeric(bbox[1]), as.numeric(bbox[3])), ylim = c(as.numeric(bbox[2]), as.numeric(bbox[4])), expand = FALSE) + 
     scale_fill_gradientn(colors =plot_colors, name = "deaths/100k") +
@@ -810,7 +811,9 @@ q1
 
 
 ```
-     
+
+
+ 
 
 
 
