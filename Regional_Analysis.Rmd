@@ -664,7 +664,7 @@ q1
           panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(),
           strip.text = element_text(color = "#154555", size = 12, face = "bold")) +
-    labs(title = str_c('PER CAPITA COVID-19 CASES: data through ', date_display),
+    labs(title = str_c('TOTAL CASES PER CAPITA COVID-19: data through ', date_display),
          subtitle=str_c("NYTimes COVID19 Database"), "color = cases/100k") +
      annotate(geom="text", x=-70,
              y=25,
@@ -674,6 +674,131 @@ q1
 
 
 ```
+
+
+```{r, warning = F, message = F, fig.align='center', fig.height =5, fig.width = 9, echo = F, eval = T}
+
+## per capita cases
+
+  data_x<-final_plot_data   
+   
+  bbox <- make_bbox(lat = lat, lon = lon, data = data_x, f = .1)
+  
+  c_lat <- (bbox[2] + bbox[4])/2
+  c_lon <- (bbox[1] + bbox[3])/2 
+  
+  range_lat = abs(bbox[2] - bbox[4])
+  range_lon = abs(bbox[1] - bbox[3])
+  
+ bbox_us<-bbox
+  
+ state_abb <- bind_cols(state = state.name, ST = state.abb)
+  
+  
+  # plot_colors <- c(brewer.pal(n = 11, name = "RdYlGn")[1:9], "#3392B2", "#5362C2")
+  # plot_colors <- plot_colors[-(6:7)]
+  # plot_colors <- c("#950005", plot_colors)
+  
+  plot_colors <- rev(c(brewer.pal(n = 5, name = "RdYlGn"), "#3322B2"))
+  
+  plot_colors <- c("white","salmon", "darkred")
+  
+  
+  states <- st_as_sf(map("state", plot = FALSE, fill = TRUE)) %>%
+    mutate(state = toTitleCase(ID)) %>%
+    left_join(state_abb, by = "state") %>%
+    yo
+  
+  
+  counties <- st_as_sf(map("county", plot = FALSE, fill = TRUE)) %>%
+    mutate(state = ID%>%str_extract("[\\s\\S]*(?=,)")%>%toTitleCase())%>%
+    mutate(county = ID%>%str_extract("(?<=,).{1,}")%>%toTitleCase())%>%
+    left_join(state_abb, by = "state") %>%
+    yo
+  
+  NYC_data <- final_plot_data %>%filter(ST == "NY" & county == "New York City")
+  Kings_data <- NYC_data %>% mutate(county = "Kings")
+  Queens_data <- NYC_data %>% mutate(county = "Queens")
+  Bronx_data <- NYC_data %>% mutate(county = "Bronx")
+  NY_data <- NYC_data %>% mutate(county = "New York")
+  Richmond_data <- NYC_data %>% mutate(county = "Richmond")
+  
+  
+  
+  
+  max_date = max(final_plot_data$date)
+  date_display <- max_date
+  
+  data_max <- final_plot_data %>%
+    filter(!(county == "New York City")) %>%
+    bind_rows(Kings_data, Queens_data, Bronx_data, NY_data, Richmond_data) %>%
+    filter(date == max_date) %>%
+    mutate(per_capita = 100000*daily_cases/population) %>%
+    mutate(per_capita = ifelse(per_capita > 200, 200, per_capita)) %>%
+    mutate(per_capita = ifelse(per_capita < 2, 2, per_capita)) %>%
+    select(state, ST, county, per_capita, date) %>%
+    yo
+  
+
+  
+  counties_max <- counties %>%
+    left_join(data_max, by = c("county", "state", "ST")) %>%
+    mutate(date = ifelse(!is.na(date), date, max_date)) %>%
+    mutate(date = as_date(date)) %>%
+    mutate(per_capita = ifelse(!(is.na(per_capita)), per_capita, 20)) %>%
+    yo
+  
+  # counties_May01 <- counties %>%
+  #   left_join(data_May01, by = c("county", "state", "ST")) %>%
+  #   mutate(date = ifelse(!is.na(date), date, ymd("2020-05-01"))) %>%
+  #   mutate(date = as_date(date)) %>%
+  #   mutate(per_capita = ifelse(!(is.na(per_capita)), per_capita, 20)) %>%
+  #   yo
+  # 
+  # counties_Jun15 <- counties %>%
+  #   left_join(data_Jun15, by = c("county", "state", "ST")) %>%
+  #   mutate(date = ifelse(!is.na(date), date,  ymd("2020-06-15"))) %>%
+  #   mutate(date = as_date(date)) %>%
+  #   mutate(per_capita = ifelse(!(is.na(per_capita)), per_capita, 20)) %>%
+  #   yo
+  
+  
+  counties <- counties_max %>%
+    #bind_rows(counties_Jun15) %>%
+    #bind_rows(counties_May01) %>%
+     mutate(date = as_date(date)) %>%
+    yo
+
+  
+    #per_capita_cases_plot <- 
+  ggplot(crs = st_crs(102003)) + 
+    geom_sf(data = counties , aes(geometry = geom, fill = per_capita), color = "#DDDDCC77", size = 0.2 ) + 
+    coord_sf(xlim = c(as.numeric(bbox[1]), as.numeric(bbox[3])), ylim = c(as.numeric(bbox[2]), as.numeric(bbox[4])), expand = FALSE) + 
+    scale_fill_gradientn(colors =plot_colors, name = "cases/100k") +
+    theme_bw() +
+    theme(axis.title.x=element_blank(),
+          axis.text.x=element_blank(),
+          axis.ticks.x=element_blank(),
+          axis.title.y=element_blank(),
+          axis.text.y=element_blank(),
+          axis.ticks.y=element_blank(),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_blank(),
+          strip.text = element_text(color = "#154555", size = 12, face = "bold")) +
+    labs(title = str_c('DAILY CASES PER CAPITA COVID-19: data through ', date_display),
+         subtitle=str_c("NYTimes COVID19 Database"), "color = cases/100k") +
+     annotate(geom="text", x=-70,
+             y=25,
+             label=str_c("ww44ss - ", today() ), size = 2.5,
+             color="Grey30") 
+    
+
+
+```
+
+
+
+
 ```{r, warning = F, message = F, fig.align='center', fig.height =5, fig.width = 9, echo = F, eval = T}
 
 ## per capita deaths
@@ -799,7 +924,7 @@ q1
           panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(),
           strip.text = element_text(color = "#154555", size = 12, face = "bold")) +
-    labs(title = str_c('PER CAPITA COVID-19 MORTALITY: data through ', date_display),
+    labs(title = str_c('TOTAL MORTAILITY PER CAPITA COVID-19: data through ', date_display),
          subtitle=str_c("NYTimes COVID19 Database"), "color = cases/100k") +
      annotate(geom="text", x=-70,
              y=25,
@@ -1243,9 +1368,9 @@ d_p <- final_plot_data %>%
 p_total_cases <- ggplot(data = d_p, aes(x = date, y = total_cases) ) + 
   geom_line(size = 0.8, color = "grey40") +
   labs(title = "US Total Cases", subtitle = today(), y = "cases")+ 
-    annotate(geom="text", x=(max(d_p$date) - days(50)), 
+    annotate(geom="text", x=(max(d_p$date) - days(60)), 
              y=max(0.95*d_p$total_cases), 
-             label=str_c((max(d_p$total_cases)/1000000)%>% round(2), " million cases    "), size = 3.0,
+             label=str_c((max(d_p$total_cases)/1000000)%>% round(2), " million total cases    "), size = 3.0,
              color="steelblue4") +
   theme_bw()
 
@@ -1310,9 +1435,9 @@ p_dailycases <- ggplot(d_p,
   labs(title = "US Daily Cases", subtitle = today(), y = "cases")+
   geom_col(color = "grey80", width = 0.7, alpha = 0.5) +
   geom_line(aes(y = daily_cases), color = "#2462A2", size = 1.1, alpha = 1) + 
-    annotate(geom="text", x=(max(d_p$date) - days(40)), 
+    annotate(geom="text", x=(min(d_p$date) + days(60)), 
              y=max(0.95*d_p$daily_cases), 
-             label=str_c(round(max(d_p$daily_cases)/1000,2), " thousand daily cases    "), size = 3.0,
+             label=str_c("trend ",round(d_p[d_p$date == max(d_p$date),]$daily_cases[1]/1000,2)," thousand daily cases    "), size = 3.0,
              color="steelblue4") +
   theme_bw()
 
