@@ -283,12 +283,12 @@ for(fips_x in fips_list) {
     mutate(smoothed_cases = smoothed_cases%>%round(1)) %>%
     mutate(smoothed_deaths = smoothed_deaths%>%round(1)) %>%
     
-    mutate(rolling_baseline_14= (roll_sum(daily_cases, 13, align = "right", fill = NA)) %>% round(0)) %>%
-    mutate(rolling_baseline_14 = rolling_baseline_14-daily_cases) %>%
+    mutate(rolling_baseline_14= (roll_sum(daily_cases, 12, align = "right", fill = NA)) %>% round(0)) %>%
+    #mutate(rolling_baseline_14 = rolling_baseline_14-daily_cases) %>%
     
     
-    mutate(rolling_baseline_deaths= (roll_sum(daily_deaths, 13, align = "right", fill = NA)) %>% round(0)) %>%
-    mutate(rolling_baseline_deaths = rolling_baseline_deaths-daily_deaths) %>%
+    mutate(rolling_baseline_deaths= (roll_sum(daily_deaths, 12, align = "right", fill = NA)) %>% round(0)) %>%
+    #mutate(rolling_baseline_deaths = rolling_baseline_deaths-daily_deaths) %>%
     
     yo
   
