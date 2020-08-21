@@ -117,7 +117,7 @@ county_data <- read_csv(county_data_file,
                         ) 
 
 
-
+## 
 
 ## known data repairs
 ## these are entered mannually to fill in known gaps with reasonabl approximate data. 
@@ -143,10 +143,10 @@ county_data = county_data %>%
 
 
 ## make sure all the data are unique
-county_data <- county_data %>%
-  group_by(fips, date) %>% 
-  mutate(cases = sum(cases)) %>%
-  yo
+# county_data <- county_data %>%
+#   group_by(fips, date) %>% 
+#   mutate(cases = sum(cases)) %>%
+#   yo
 
 
 ## Join State Abbraviations to data
@@ -159,6 +159,8 @@ county_data <- county_data %>%
   yo
 
  ## split complete data from incomplete data
+  #bb<-county_data %>% filter(is.na(fips))
+
 county_data <- county_data %>% filter(!is.na(fips))
 
 
@@ -249,8 +251,18 @@ for(fips_x in fips_list) {
     mutate(log_deaths = log2(deaths+1)) %>% 
     yo
 
-  spline_model_cases <- smooth.spline(x = fips_data$n, y = fips_data$log_cases, spar = 0.65)
-  spline_model_deaths <- smooth.spline(x = fips_data$n, y = fips_data$log_deaths, spar = 0.7)
+  # spline_model_cases <- smooth.spline(x = fips_data$n, y = fips_data$log_cases, spar = .65, keep.data = F)
+  # spline_model_deaths <- smooth.spline(x = fips_data$n, y = fips_data$log_deaths, spar = .75, keep.data = F)
+  
+   nmax = max(fips_data$n)
+   
+   # set a degrees of freedom
+   df_x = as.integer(nmax/8 + 2)
+  
+  spline_model_cases <- smooth.spline(x = fips_data$n, y = fips_data$log_cases, keep.data = F, df=df_x)
+  spline_model_deaths <- smooth.spline(x = fips_data$n, y = fips_data$log_deaths, keep.data = F, df=df_x)
+  
+  
   
   
   ## use model to backward predict cases so windowed sum works
@@ -2945,8 +2957,10 @@ Today is `r today()`.
 `r as.numeric (today()-ymd("2020-07-20"))` days ago: changed to county boundaries on national map for per capita disease.  
 `r as.numeric (today()-ymd("2020-07-25"))` days ago: corrected factor of two error in death trend data.   
 `r as.numeric (today()-ymd("2020-07-29"))` days ago: removed "contained and uncontained" analysis, replacing it with county level control map.    
-`r as.numeric (today()-ymd("2020-08-03"))` days ago: added county level "baseline control" and $R-e$ maps.    
-`r as.numeric (today()-ymd("2020-08-07"))` days ago: fixed normalization error on total disease stats plot.     
+`r as.numeric (today()-ymd("2020-08-03"))` days ago: added county level "baseline control" and $R_e$ maps.    
+`r as.numeric (today()-ymd("2020-08-07"))` days ago: fixed normalization error on total disease stats plot.  
+`r as.numeric (today()-ymd("2020-08-14"))` days ago: Corrected some text matching in generating county level plots of $R_e$.  
+`r as.numeric (today()-ymd("2020-08-20"))` days ago: adapter knot spacing for spline.   
 
 
 
