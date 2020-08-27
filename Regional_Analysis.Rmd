@@ -675,24 +675,10 @@ Groups of cities (e.g. Chicago, Indianapolis, and Detroit) and paths between con
     mutate(per_capita = ifelse(!(is.na(per_capita)), per_capita, 20)) %>%
     yo
   
-  # counties_May01 <- counties %>%
-  #   left_join(data_May01, by = c("county", "state", "ST")) %>%
-  #   mutate(date = ifelse(!is.na(date), date, ymd("2020-05-01"))) %>%
-  #   mutate(date = as_date(date)) %>%
-  #   mutate(per_capita = ifelse(!(is.na(per_capita)), per_capita, 20)) %>%
-  #   yo
-  # 
-  # counties_Jun15 <- counties %>%
-  #   left_join(data_Jun15, by = c("county", "state", "ST")) %>%
-  #   mutate(date = ifelse(!is.na(date), date,  ymd("2020-06-15"))) %>%
-  #   mutate(date = as_date(date)) %>%
-  #   mutate(per_capita = ifelse(!(is.na(per_capita)), per_capita, 20)) %>%
-  #   yo
+
   
   
   counties <- counties_max %>%
-    #bind_rows(counties_Jun15) %>%
-    #bind_rows(counties_May01) %>%
      mutate(date = as_date(date)) %>%
     yo
 
@@ -785,25 +771,7 @@ Groups of cities (e.g. Chicago, Indianapolis, and Detroit) and paths between con
     select(state, ST, county, per_capita, date) %>%
     yo
   
-  # data_Jun15 <- final_plot_data %>%
-  #   filter(!(county == "New York City")) %>%
-  #   bind_rows(Kings_data, Queens_data, Bronx_data, NY_data, Richmond_data) %>%
-  #   filter(date == (ymd("2020-06-15")))%>% 
-  #   mutate(per_capita = 100000*deaths/population) %>%
-  #   mutate(per_capita = ifelse(per_capita > 250, 250, per_capita)) %>%
-  #   mutate(per_capita = ifelse(per_capita < 10, 10, per_capita)) %>%
-  #   select(state, ST, county, per_capita, date) %>%
-  #   yo
-  # 
-  # data_May01 <- final_plot_data %>%
-  #   filter(!(county == "New York City")) %>%
-  #   bind_rows(Kings_data, Queens_data, Bronx_data, NY_data, Richmond_data) %>%
-  #   filter(date == (ymd("2020-05-01")))%>%  
-  #   mutate(per_capita = 100000*deaths/population) %>%
-  #   mutate(per_capita = ifelse(per_capita > 200, 200, per_capita)) %>%
-  #   mutate(per_capita = ifelse(per_capita < 10, 10, per_capita)) %>%
-  #   select(state, ST, county, per_capita, date) %>%
-  #   yo
+
   
   
   counties_max <- counties %>%
@@ -813,24 +781,9 @@ Groups of cities (e.g. Chicago, Indianapolis, and Detroit) and paths between con
     mutate(per_capita = ifelse(!(is.na(per_capita)), per_capita, 5)) %>%
     yo
   
-  # counties_May01 <- counties %>%
-  #   left_join(data_May01, by = c("county", "state", "ST")) %>%
-  #   mutate(date = ifelse(!is.na(date), date, ymd("2020-05-01"))) %>%
-  #   mutate(date = as_date(date)) %>%
-  #   mutate(per_capita = ifelse(!(is.na(per_capita)), per_capita, 5)) %>%
-  #   yo
-  # 
-  # counties_Jun15 <- counties %>%
-  #   left_join(data_Jun15, by = c("county", "state", "ST")) %>%
-  #   mutate(date = ifelse(!is.na(date), date,  ymd("2020-06-15"))) %>%
-  #   mutate(date = as_date(date)) %>%
-  #   mutate(per_capita = ifelse(!(is.na(per_capita)), per_capita, 5)) %>%
-  #   yo
-  # 
+
   
   counties <- counties_max %>%
-    #bind_rows(counties_Jun15) %>%
-    #bind_rows(counties_May01) %>%
      mutate(date = as_date(date)) %>%
     yo
  
