@@ -257,7 +257,7 @@ for(fips_x in fips_list) {
    nmax = max(fips_data$n)
    
    # set a degrees of freedom
-   df_x = as.integer(nmax/8 + 2)
+   df_x = as.integer(nmax/5 + 2)
   
   spline_model_cases <- smooth.spline(x = fips_data$n, y = fips_data$log_cases, keep.data = F, df=df_x)
   spline_model_deaths <- smooth.spline(x = fips_data$n, y = fips_data$log_deaths, keep.data = F, df=df_x)
