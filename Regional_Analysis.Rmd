@@ -2879,8 +2879,8 @@ This document took `r round(difftime(t_end, t_start, units = "secs"), 1)` second
 
 ## version history    
 Today is `r today()`.     
-`r as.numeric(today()-ymd("2020-05-20"))` days ago: Multiple states.   
-`r as.numeric(today()-ymd("2020-05-28"))` days ago: $R_e$ computation.     
+`r as.numeric(today()-ymd("2020-05-20"))` days ago: span plots to multiple states.   
+`r as.numeric(today()-ymd("2020-05-28"))` days ago: include $R_e$ computation.     
 `r as.numeric (today()-ymd("2020-05-31"))` days ago: created color coding for $R_e$ plots.    
 `r as.numeric (today()-ymd("2020-06-05"))` days ago: Reduced $t_d$ from 14 to 12 days. 14 was the upper range of what most people are using. Wanted slightly higher bandwidth.    
 `r as.numeric (today()-ymd("2020-06-05"))` days ago: "persistence" time evolution.    
@@ -2898,7 +2898,8 @@ Today is `r today()`.
 `r as.numeric (today()-ymd("2020-08-03"))` days ago: added county level "baseline control" and $R_e$ maps.    
 `r as.numeric (today()-ymd("2020-08-07"))` days ago: fixed normalization error on total disease stats plot.  
 `r as.numeric (today()-ymd("2020-08-14"))` days ago: Corrected some text matching in generating county level plots of $R_e$.  
-`r as.numeric (today()-ymd("2020-08-20"))` days ago: adapter knot spacing for spline.   
+`r as.numeric (today()-ymd("2020-08-20"))` days ago: adapted knot spacing for spline.   
+`r as.numeric (today()-ymd("2020-09-03"))` days ago:using separate knot spacing for spline fits of deaths and cases.   
 
 
 
