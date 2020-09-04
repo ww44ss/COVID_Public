@@ -257,10 +257,11 @@ for(fips_x in fips_list) {
    nmax = max(fips_data$n)
    
    # set a degrees of freedom
-   df_x = as.integer(nmax/5 + 2)
+   df_c = as.integer(nmax/5 + 2)
+   df_d = as.integer(nmax/6.5 + 2)
   
-  spline_model_cases <- smooth.spline(x = fips_data$n, y = fips_data$log_cases, keep.data = F, df=df_x)
-  spline_model_deaths <- smooth.spline(x = fips_data$n, y = fips_data$log_deaths, keep.data = F, df=df_x)
+  spline_model_cases <- smooth.spline(x = fips_data$n, y = fips_data$log_cases, keep.data = F, df=df_c)
+  spline_model_deaths <- smooth.spline(x = fips_data$n, y = fips_data$log_deaths, keep.data = F, df=df_d)
   
   
   
@@ -1407,8 +1408,8 @@ data_x <- final_plot_data %>%
 
 
 
-ggplot(data_x, aes(control,y=..density.., fill = date)) + geom_histogram(bins =5 , position = "dodge", color = "white") + #geom_density(alpha = 0.2, bw = .04) + 
-  scale_fill_manual(values = c("steelblue2", "lightgreen", "salmon")) + labs(title = TeX("$Baseline \\, Control$ distribution for US Counties"), y = "density", x = "control (%)") +theme_bw() + scale_x_continuous(breaks=c(0, 25, 50, 75, 100))
+ggplot(data_x, aes(control,y=..density.., fill = date)) + geom_histogram(bins =4 , position = "dodge", color = "white") + #geom_density(alpha = 0.2, bw = .04) + 
+  scale_fill_manual(values = c("steelblue2", "lightgreen", "salmon")) + labs(title = TeX("$Baseline \\, Control$ distribution for US Counties"), y = "density", x = "control (%)") +theme_bw() + scale_x_continuous(breaks=c(0, 33, 67, 100))
 
 ```
 
@@ -1983,6 +1984,7 @@ county_plot(final_plot_data, county_x = "King", state_x = "WA")
 cat("\n")
 county_plot(final_plot_data, county_x = "Pierce", state_x = "WA")
 county_plot(final_plot_data, county_x = "Yakima", state_x = "WA")
+county_plot(final_plot_data, county_x = "Whitman", state_x = "WA")
 
 ```
 
@@ -1992,31 +1994,14 @@ county_plot(final_plot_data, county_x = "Yakima", state_x = "WA")
 ```{r}
 
 county_plot(final_plot_data, county_x = "Washington", state_x = "OR")
-
-```
-
-
-
-```{r}
-
 county_plot(final_plot_data, county_x = "Multnomah", state_x = "OR")
-
-```
-
-
-
-```{r}
-
+county_plot(final_plot_data, county_x = "Benton", state_x = "OR")
 county_plot(final_plot_data, county_x = "Wasco", state_x = "OR")
-
-```
-
-
-```{r}
-
 county_plot(final_plot_data, county_x = "Deschutes", state_x = "OR")
 
 ```
+
+
 
 ## California    
 
