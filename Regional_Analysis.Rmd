@@ -448,20 +448,382 @@ file_name_date_append <- today() %>%
     }
 ```
 
+# National Statistics    
 
+## Total & Active Cases, and Deaths   
+
+These trend charts show the national disease statistics. The raw data are shown. since these showdaily trends that are systematically related ot the M-F work week, possibly due to reporting delays, numbers showsn
+
+```{r, fig.height=6, fig.width=8, fig.align="center", warning=F, message=F}
+
+
+d_p <- final_plot_data %>%
+  ungroup()%>%
+  group_by(date) %>%
+  summarize(total_cases = sum(orig_cases), total_active = sum(rolling_baseline_14), total_deaths = sum(deaths), daily_cases = sum(daily_cases), total_daily = sum(daily_cases), daily_deaths = sum(daily_deaths)) %>%
+  mutate(r_e = daily_cases*12/(total_active+.1)) %>%
+  mutate(daily_deaths2 = total_deaths - lag(total_deaths)) %>%
+   mutate(daily_cases2 = total_cases - lag(total_cases)) %>%
+  mutate(mortality = 100*total_deaths/(total_cases+.1), daily_mortality = 100*daily_deaths/(total_daily+.1)) %>%
+  ungroup() %>%
+  yo
+
+
+
+
+p_total_cases <- ggplot(data = d_p, aes(x = date, y = total_cases) ) + 
+  geom_line(size = 0.8, color = "grey40") +
+  labs(title = "US Total Cases", subtitle = today(), y = "cases")+ 
+    annotate(geom="text", x=(max(d_p$date) - days(60)), 
+             y=max(0.95*d_p$total_cases), 
+             label=str_c((max(d_p$total_cases)/1000000)%>% round(2), " million total cases    "), size = 3.0,
+             color="steelblue4") +
+  theme_bw()
+
+ 
+p1_daily <- ggplot(data = d_p, aes(x = date) ) + 
+ geom_line(aes(x = date, y = daily_cases2), color = "#891815", size = 0.8, alpha = 0.8)+
+  labs(title = "Daily US Cases", subtitle = today(), y = "cases")+ 
+  annotate(geom="text", x=(max(d_p$date) - days(30)), 
+             y=(0.85*d_p[d_p$date == max(d_p$date),]$daily_cases[1]), 
+             label=str_c((d_p[d_p$date == max(d_p$date),]$daily_cases2[1]/1000000)%>%round(0), " cases    "), size = 3.0,
+             color="steelblue4") +
+  theme_bw()
+
+p1_daily_deaths <- ggplot(data = d_p, aes(x = date) ) + 
+ geom_col(aes(y = daily_deaths2), color = "grey80", width = 0.7, alpha = 0.5)+
+  geom_line(aes(y = daily_deaths), size = 1, color = "#151589AA")+
+  labs(title = "Daily US Deaths (daily data and fit)", subtitle = today(), y = "deaths")+ 
+  annotate(geom="text", x=(max(d_p$date) - days(40)), 
+             y=(0.05*max(d_p$daily_deaths)), 
+             label=str_c("trend ", (d_p[d_p$date == max(d_p$date),]$daily_deaths[1])%>%round(0), " daily deaths    "), size = 3.0,
+             color="steelblue4") +
+  theme_bw()
+
+
+
+p_mortality <- ggplot(d_p, 
+       aes(x = date, y = mortality)) + 
+  geom_line(color = "#C46222", size = 1.5, alpha = 0.8) + 
+  labs(title = "US Mortality Rate", subtitle = today(), y = "mortaility (%)")+
+  annotate(geom="text", x=(max(d_p$date) - days(40)), 
+             y=0.05*max(d_p$mortality), 
+             label=str_c((d_p[d_p$date == max(d_p$date),]$mortality[1])%>%round(2), "% mortality on ", max(d_p$date)), size = 3.0,
+             color="steelblue4") +
+  theme_bw()
+
+
+
+
+p_daily_mortality <- ggplot(d_p, 
+       aes(x = date, y = daily_mortality)) + 
+  geom_line(color = "#C46232", size = 1, alpha = 0.8) + 
+  labs(title = "Daily Deaths/Cases", subtitle = today(), y = "mortaility (%)")+
+  annotate(geom="text", x=(max(d_p$date) - days(40)), 
+             y=0.05*max(d_p$daily_mortality), 
+             label=str_c((d_p[d_p$date == max(d_p$date),]$daily_mortality[1])%>%round(2), "% mortality"), size = 3.0,
+             color="steelblue4") +
+  theme_bw()
+
+p_total_deaths <- ggplot(d_p, 
+       aes(x = date, y = total_deaths)
+         ) + geom_line(color = "#A46242", size = 1, alpha = 0.8) + 
+  labs(title = "Total US Deaths", subtitle = today(), y = "deaths")+
+    annotate(geom="text", x=(max(d_p$date) - days(40)), 
+             y=max(0.05*d_p$total_deaths), 
+             label=str_c((max(d_p$total_deaths)/1000) %>% round(1), " thousand deaths  "), size = 3.0,
+             color="steelblue4") +
+  theme_bw()
+
+
+p_dailycases <- ggplot(d_p,
+                       aes(x = date, y = daily_cases2))  +
+  labs(title = "US Daily Cases", subtitle = today(), y = "cases")+
+  geom_col(color = "grey80", width = 0.7, alpha = 0.5) +
+  geom_line(aes(y = daily_cases), color = "#2462A2", size = 1.1, alpha = 1) + 
+    annotate(geom="text", x=(min(d_p$date) + days(60)), 
+             y=max(0.95*d_p$daily_cases), 
+             label=str_c("trend ",round(d_p[d_p$date == max(d_p$date),]$daily_cases[1]/1000,2)," thousand daily cases    "), size = 3.0,
+             color="steelblue4") +
+  theme_bw()
+
+
+p_r <- 
+  ggplot(d_p,
+                       aes(x = date, y = r_e)) + geom_line(color = "#5442E2", size = 1.5, alpha = 0.8) + geom_smooth(span = .3)+
+  labs(title = "Effective Reproduction Rate", subtitle = "Smoothed Trend Added with Estimated Variance", y = "R_e")+
+  scale_y_log10()+
+  annotate(geom="text", x=(max(d_p$date) - days(40)), 
+             y=0.85*max(d_p$r_e), 
+             label=str_c("R_e = ",(d_p[d_p$date == max(d_p$date),]$r_e[1])%>%round(2)), size = 3.0,
+             color="steelblue4") +
+  theme_bw()
+
+
+
+grid.arrange(p_total_cases, p_dailycases, p_total_deaths, p1_daily_deaths,  nrow = 2)
+
+
+```
+    
+
+## Mortality and $R_e$     
+
+
+```{r, fig.height=4, fig.width=9, fig.align="center"}
+grid.arrange(p_r, p_mortality,nrow = 1)
+
+```
+
+  
+## Distribution of $R_e$ Values    
+
+There is a wide dirstubtion of $R_e$ across regions and counties.  The distributions in the graph below looks roughly symmetrical because the x-scale is logarithmic.  
+
+```{r, fig.height=3.5, fig.width=9, fig.align="center"}
+data_x <- final_plot_data %>%
+  group_by(county, date) %>%
+  mutate(control = 100*(1 - rolling_baseline_14/max(rolling_baseline_14))) %>%
+  ungroup()%>%
+  filter(date == max(date) | date == ymd("2020-06-22")| date == ymd("2020-05-07")) %>%
+  filter(is.finite(r_e)) %>%
+  mutate(date = as.factor(date))%>%
+  filter(r_e < 3 & r_e>0)%>%
+  select(r_e, date, control) %>%
+  yo
+
+
+ggplot(data_x, aes(r_e,y=..density.., fill = date)) + geom_histogram(bins =30 , position = "dodge") + geom_density(alpha = 0.2, bw = .04) + 
+  scale_fill_manual(values = c("lightgreen", "steelblue2", "salmon")) + labs(title = TeX("$R_e$ distribution for US Counties"), y = "density", x = TeX("$R_e$")) +theme_bw() + scale_x_log10()
+
+```
 
 # National Maps    
 
-There are plenty of online maps. I've deprecated a few of the ones I've computer since they are no longer relevant to the analysis of disease trends. They are published:   
-- [here]([https://rpubs.com/ww44ss/NATIONAL_TOTAL_COVID_CASES).   
+The key indicator for disease forcasting is the Effective Reproduction Rate $R_e$, which is a measure of how many new cases each existing case of disease creates.  
+
+When a lot of people are sick in a population without mass-immunity you want $R_e \ll 1$ or $log_2$($R_e$) < 0) to acheive negative disease growth. 
+
+After achieving negative growth, the next phase of recovery is maintaining consistently lower levels of disease to a level where disease cases can be micro-managed. There's no clear agreement on how few that is, but I've seen estimates as low as 500 cases per day across the US (about 0.16 cases per 100k population). 
+
+An estimate of the disease "toll" is the number of officially tallied deaths. It is fully agreed this vastly underestimates that actual cost of the disease. Death counts are almost certainly [underestimated](https://www.wsj.com/articles/covid-19s-exact-toll-is-murky-though-u-s-deaths-are-up-sharply-11589555652) and this does not reflect any [long lasting](https://www.mayoclinic.org/diseases-conditions/coronavirus/in-depth/coronavirus-long-term-effects/art-20490351) health effects on those who recover. 
 
 
-## Cases and Deaths per Capita   
+## State Level Data   
 
-This chart reveals a more interesting pattern of disease spread. I haven't found one of these online.   
-Groups of cities (e.g. Chicago, Indianapolis, and Detroit) and paths between connected communities are clearly visible.     
+### Pandemic Totals
+
+```{r, warning = F, message = F, error = F, fig.align='center', fig.height =5, fig.width = 9, echo = F, eval = T}
+
+## plot reproduction rate
 
 
+state_abb <- bind_cols(state = state.name, ST = state.abb)
+  
+  
+  
+states <- st_as_sf(map("state", plot = FALSE, fill = TRUE)) %>%
+    mutate(state = toTitleCase(ID)) %>%
+    left_join(state_abb, by = "state") %>%
+    yo
+
+
+states_cache <- states %>% filter(!is.na(ST))
+
+states <- states_cache
+
+  plot_colors <- c(brewer.pal(n = 11, name = "RdYlGn")[1:9], "#3392B2", "#1133C5")
+  plot_colors <- plot_colors[-c(1,(6:7))]
+  plot_colors <- rev(plot_colors)
+
+data_x <- final_plot_data %>%
+  group_by(ST) %>%
+  filter(date == max(date)) %>%
+  summarize(cases = sum(cases), daily_cases = sum(daily_cases), rolling_baseline_14 = sum(rolling_baseline_14), population = sum(population))%>%
+  mutate(r_e = 12*daily_cases/rolling_baseline_14) %>%
+  select(ST, cases, daily_cases, rolling_baseline_14, r_e, population) %>%
+  mutate(r_e = ifelse(r_e > 1.5, 1.5, r_e)) %>%
+  mutate(r_e = ifelse(r_e < 0.66, 0.66, r_e)) %>%
+  mutate(daily_cases_per_capita = 10^5*daily_cases/population) %>%
+  mutate(short_term_change = daily_cases*(0.5*r_e^2))%>%
+  yo
+
+data_x<-states %>%
+  left_join(data_x, by = "ST") %>%
+  yo
+
+   
+bbox <- make_bbox(lat = lat, lon = lon, data = final_plot_data, f = .1)
+  
+  bbox_us<-bbox
+
+  
+  c_lat <- (bbox[2] + bbox[4])/2
+  c_lon <- (bbox[1] + bbox[3])/2 
+  
+  range_lat = abs(bbox[2] - bbox[4])
+  range_lon = abs(bbox[1] - bbox[3])
+
+
+  
+t_cases <-    
+  ggplot() + 
+    geom_sf(data = data_x, aes(geometry = geom, fill = cases), color = "white", size = 0.6, alpha = 0.85) + 
+    coord_sf(xlim = c(as.numeric(bbox[1]), as.numeric(bbox[3])), ylim = c(as.numeric(bbox[2]), as.numeric(bbox[4])), expand = FALSE) +
+    scale_fill_gradientn(colors =plot_colors, name = TeX("Cases"), limits = c(0, 800000)) + 
+    theme_bw()+
+    theme(axis.title.x=element_blank(),
+          axis.text.x=element_blank(),
+          axis.ticks.x=element_blank(),
+          axis.title.y=element_blank(),
+          axis.text.y=element_blank(),
+          axis.ticks.y=element_blank(),
+          panel.grid.major = element_blank(), 
+          panel.grid.minor = element_blank(),
+          strip.text = element_text(color = "#154555", size = 14, face = "bold")) +
+    #labs(title = str_c("Reproduction Rate," TeX("$R_e$")),
+      labs(title =  TeX("How Many People Have Been Sick?"),
+         subtitle = TeX("Total Cases by State")) +
+     annotate(geom="text", x=-70, 
+             y=25, 
+             label=str_c("ww44ss - ", today() ), size = 2.5,
+             color="Grey30") 
+  
+  
+t_cases_per_capita <-    
+  ggplot() + 
+    geom_sf(data = data_x, aes(geometry = geom, fill = 100000* cases/population), color = "white", size = 0.6, alpha = 0.85) + 
+    coord_sf(xlim = c(as.numeric(bbox[1]), as.numeric(bbox[3])), ylim = c(as.numeric(bbox[2]), as.numeric(bbox[4])), expand = FALSE) +
+    scale_fill_gradientn(colors =plot_colors, name = TeX("Cases/100k"), limits = c(0, 3500)) + 
+    theme_bw()+
+    theme(axis.title.x=element_blank(),
+          axis.text.x=element_blank(),
+          axis.ticks.x=element_blank(),
+          axis.title.y=element_blank(),
+          axis.text.y=element_blank(),
+          axis.ticks.y=element_blank(),
+          panel.grid.major = element_blank(), 
+          panel.grid.minor = element_blank(),
+          strip.text = element_text(color = "#154555", size = 14, face = "bold")) +
+    #labs(title = str_c("Reproduction Rate," TeX("$R_e$")),
+      labs(title =  TeX("What Fraction People Have Been Sick?"),
+         subtitle = TeX("Total Cases by State Per 100k Population")) +
+     annotate(geom="text", x=-70, 
+             y=25, 
+             label=str_c("ww44ss - ", today() ), size = 2.5,
+             color="Grey30")  
+  
+
+p_reproduction <-    
+  ggplot() + 
+    geom_sf(data = data_x, aes(geometry = geom, fill = log2(r_e)), color = "white", size = 0.6, alpha = 0.85) + 
+    coord_sf(xlim = c(as.numeric(bbox[1]), as.numeric(bbox[3])), ylim = c(as.numeric(bbox[2]), as.numeric(bbox[4])), expand = FALSE) +
+    scale_fill_gradientn(colors =plot_colors, name = TeX("log_2(R_e)"), limits = c(-0.61, 0.61)) + 
+    theme_bw()+
+    theme(axis.title.x=element_blank(),
+          axis.text.x=element_blank(),
+          axis.ticks.x=element_blank(),
+          axis.title.y=element_blank(),
+          axis.text.y=element_blank(),
+          axis.ticks.y=element_blank(),
+          panel.grid.major = element_blank(), 
+          panel.grid.minor = element_blank(),
+          strip.text = element_text(color = "#154555", size = 14, face = "bold")) +
+    #labs(title = str_c("Reproduction Rate," TeX("$R_e$")),
+      labs(title =  TeX("Reproduction Rate: $R_e$"),
+         subtitle = TeX("Green/Blue Shades Imply Decreasing Disease")) +
+     annotate(geom="text", x=-70, 
+             y=25, 
+             label=str_c("ww44ss - ", today() ), size = 2.5,
+             color="Grey30")
+
+
+p_per_capita <-    
+  ggplot() + 
+    geom_sf(data = data_x, aes(geometry = geom, fill = daily_cases_per_capita), color = "white", size = 0.6, alpha = 0.85) + 
+    coord_sf(xlim = c(as.numeric(bbox[1]), as.numeric(bbox[3])), ylim = c(as.numeric(bbox[2]), as.numeric(bbox[4])), expand = FALSE) +
+    scale_fill_gradientn(colors =plot_colors, name = TeX("Cases/100k"), limits = c(0, 50)) + 
+    theme_bw()+
+    theme(axis.title.x=element_blank(),
+          axis.text.x=element_blank(),
+          axis.ticks.x=element_blank(),
+          axis.title.y=element_blank(),
+          axis.text.y=element_blank(),
+          axis.ticks.y=element_blank(),
+          panel.grid.major = element_blank(), 
+          panel.grid.minor = element_blank(),
+          strip.text = element_text(color = "#154555", size = 14, face = "bold")) +
+    #labs(title = str_c("Reproduction Rate," TeX("$R_e$")),
+      labs(title =  TeX("Daily Cases per 100k Population"),
+         subtitle = TeX("Disease Containment is fewer than one case / 100k / day")) +
+     annotate(geom="text", x=-70, 
+             y=25, 
+             label=str_c("ww44ss - ", today() ), size = 2.5,
+             color="Grey30")
+
+
+p_short_term_change <-      
+  ggplot() + 
+    geom_sf(data = data_x, aes(geometry = geom, fill = 100000*short_term_change/population), color = "white", size = 0.6, alpha = 0.85) + 
+    coord_sf(xlim = c(as.numeric(bbox[1]), as.numeric(bbox[3])), ylim = c(as.numeric(bbox[2]), as.numeric(bbox[4])), expand = FALSE) +
+    scale_fill_gradientn(colors =plot_colors, name = TeX("Cases/100k"), limits = c(0, 50)) + 
+    theme_bw()+
+    theme(axis.title.x=element_blank(),
+          axis.text.x=element_blank(),
+          axis.ticks.x=element_blank(),
+          axis.title.y=element_blank(),
+          axis.text.y=element_blank(),
+          axis.ticks.y=element_blank(),
+          panel.grid.major = element_blank(), 
+          panel.grid.minor = element_blank(),
+          strip.text = element_text(color = "#154555", size = 14, face = "bold")) +
+    #labs(title = str_c("Reproduction Rate," TeX("$R_e$")),
+      labs(title =  TeX("Forecast of Daily Cases per 100k"),
+         subtitle = TeX("Based on Computed Reproduction $R_e$ ")) +
+     annotate(geom="text", x=-70, 
+             y=25, 
+             label=str_c("ww44ss - ", today() ), size = 2.5,
+             color="Grey30")
+    
+    
+
+
+```
+
+
+```{r, warning = F, message = F, error = F, fig.align='center', fig.height =7, fig.width = 8, echo = F, eval = T}
+
+grid.arrange(t_cases, t_cases_per_capita, nrow = 2)
+
+```
+
+### Current Status of Active Disease
+
+
+```{r, warning = F, message = F, error = F, fig.align='center', fig.height =5, fig.width = 9, echo = F, eval = F}
+
+p_reproduction
+
+```
+
+How many cases are there per day, per capita, in each state? You can see the number of current cases varies widely. I also include a forecast of the number of cases about a week from now given current trends. Most states currently show improvement. 
+
+```{r, warning = F, message = F, error = F, fig.align='center', fig.height =7, fig.width = 8, echo = F, eval = T}
+
+grid.arrange(p_per_capita, p_short_term_change, nrow = 2)
+
+```
+
+
+
+  
+
+
+
+
+## County Level Data   
+
+While the State-Level Data Tell as remarkable story, it is also interesting to look at County-level data 
 
 
 ```{r, warning = F, message = F, fig.align='center', fig.height =5, fig.width = 9, echo = F, eval = T}
@@ -604,7 +966,7 @@ Groups of cities (e.g. Chicago, Indianapolis, and Detroit) and paths between con
 ```
 
 
-```{r, warning = F, message = F, fig.align='center', fig.height =5, fig.width = 9, echo = F, eval = T}
+```{r, warning = F, message = F, fig.align='center', fig.height =5, fig.width = 9, echo = F, eval = F}
 
 ## per capita cases
 
@@ -713,7 +1075,7 @@ Groups of cities (e.g. Chicago, Indianapolis, and Detroit) and paths between con
 
 
 
-```{r, warning = F, message = F, fig.align='center', fig.height =5, fig.width = 9, echo = F, eval = T}
+```{r, warning = F, message = F, fig.align='center', fig.height =5, fig.width = 9, echo = F, eval = F}
 
 ## per capita deaths
 
@@ -820,151 +1182,6 @@ Groups of cities (e.g. Chicago, Indianapolis, and Detroit) and paths between con
 
 
  
-
-
-
-## Reproduction and Control 
-
-$R_e$ is a measure of disease growth. For recovery to begin disease growth must turn from  positive to negative (i.e. from $log_2$($R_e$) > 0 to $log_2$($R_e$) < 0). 
-
-After achieving negative growth growth, the next phase of recovery is maintaining consistently lower levels of disease. Control can be measured as a ratio of current disease levels to maximum disease levels. If disease levels are currently at a maximum, control is 0 %.      
-
-$$ control = 100 \times (1 - \frac{active \space disease}{max(active \space disease)} ) \% $$
-
-### State Level Data   
-
-```{r, warning = F, message = F, error = F, fig.align='center', fig.height =5, fig.width = 9, echo = F, eval = T}
-
-## plot reproduction rate
-
-
-
-states_cache <- states %>% filter(!is.na(ST))
-
-states <- states_cache
-
-  plot_colors <- c(brewer.pal(n = 11, name = "RdYlGn")[1:9], "#3392B2", "#1133C5")
-  plot_colors <- plot_colors[-c(1,(6:7))]
-  plot_colors <- rev(plot_colors)
-
-data_x <- final_plot_data %>%
-  group_by(ST) %>%
-  filter(date == max(date)) %>%
-  summarize(cases = sum(cases), daily_cases = sum(daily_cases), rolling_baseline_14 = sum(rolling_baseline_14), population = sum(population))%>%
-  mutate(r_e = 12*daily_cases/rolling_baseline_14) %>%
-  select(ST, cases, daily_cases, rolling_baseline_14, r_e, population) %>%
-  yo
-
-
-states <- states %>% 
-  left_join(data_x, by = "ST") %>%
-  yo
-
-  
-  bbox <- bbox_us
-  
-  c_lat <- (bbox[2] + bbox[4])/2
-  c_lon <- (bbox[1] + bbox[3])/2 
-  
-  range_lat = abs(bbox[2] - bbox[4])
-  range_lon = abs(bbox[1] - bbox[3])
-
-  
-  
-
-    ggplot() + 
-    geom_sf(data = states, aes(geometry = geom, fill = log2(r_e)), color = "white", size = 0.6, alpha = 0.85) + 
-    coord_sf(xlim = c(as.numeric(bbox[1]), as.numeric(bbox[3])), ylim = c(as.numeric(bbox[2]), as.numeric(bbox[4])), expand = FALSE) +
-    scale_fill_gradientn(colors =plot_colors, name = TeX("log_2(R_e)"), limits = c(-0.61, 0.61)) + 
-    theme_bw()+
-    theme(axis.title.x=element_blank(),
-          axis.text.x=element_blank(),
-          axis.ticks.x=element_blank(),
-          axis.title.y=element_blank(),
-          axis.text.y=element_blank(),
-          axis.ticks.y=element_blank(),
-          panel.grid.major = element_blank(), 
-          panel.grid.minor = element_blank(),
-          strip.text = element_text(color = "#154555", size = 14, face = "bold")) +
-    #labs(title = str_c("Reproduction Rate," TeX("$R_e$")),
-      labs(title =  TeX("Reproduction Rate: $R_e$"),
-         subtitle = TeX("Disease reduction requires $log_2(R_e)$ < 0")) +
-     annotate(geom="text", x=-70, 
-             y=25, 
-             label=str_c("ww44ss - ", today() ), size = 2.5,
-             color="Grey30")
-    
-    
-
-
-```
-
-  
-
-```{r, warning = F, message = F, error = F, fig.align='center', fig.height =5, fig.width = 9, echo = F, eval = T}
-
-## plot control
-
-states <- states_cache %>% filter(!is.na(ST))
-
-  plot_colors <- c(brewer.pal(n = 11, name = "RdYlGn")[1:9], "#3392B2", "#1133C5")
-  plot_colors <- plot_colors[-c(1,(6:7))]
-  #plot_colors <- rev(plot_colors)
-
-data_x <- final_plot_data %>%
-  group_by(ST, date) %>%
-  #filter(ST == "WA" | ST == "OR") %>%
-  summarize(cases = sum(cases), daily_cases = sum(daily_cases), rolling_baseline_14 = sum(rolling_baseline_14), population = sum(population))%>%
-  mutate(r_e = 12*daily_cases/rolling_baseline_14) %>%
-  mutate(max_rolling_baseline_14 = max(rolling_baseline_14)) %>%
-  mutate(persistence = 100-100*rolling_baseline_14/max_rolling_baseline_14) %>%
-  #select(ST, cases, daily_cases, rolling_baseline_14, r_e, population, persistence) %>%
-  filter(date == max(date)) %>%
-  ungroup() %>%  
-  yo
-
-
-states <- states %>% 
-  left_join(data_x, by = "ST") %>%
-  yo
-
-  
-  bbox <- bbox_us
-  
-  c_lat <- (bbox[2] + bbox[4])/2
-  c_lon <- (bbox[1] + bbox[3])/2 
-  
-  range_lat = abs(bbox[2] - bbox[4])
-  range_lon = abs(bbox[1] - bbox[3])
-
-  
-  
-
-    ggplot() + 
-    geom_sf(data = states, aes(geometry = geom, fill = persistence), color = "white", size = 0.6, alpha = 0.85) + 
-    coord_sf(xlim = c(as.numeric(bbox[1]), as.numeric(bbox[3])), ylim = c(as.numeric(bbox[2]), as.numeric(bbox[4])), expand = FALSE) +
-    scale_fill_gradientn(colors =plot_colors, name = "Control (%)", limits = c(0, 100)) + 
-    theme_bw()+
-    theme(axis.title.x=element_blank(),
-          axis.text.x=element_blank(),
-          axis.ticks.x=element_blank(),
-          axis.title.y=element_blank(),
-          axis.text.y=element_blank(),
-          axis.ticks.y=element_blank(),
-          panel.grid.major = element_blank(), 
-          panel.grid.minor = element_blank(),
-          strip.text = element_text(color = "#154555", size = 14, face = "bold")) +
-    labs(title = str_c("Disease Baseline Control"),
-         subtitle = "Low control indicates high relative presence of active disease risk") +
-    annotate(geom="text", x=-70, 
-             y=25, 
-             label=str_c("ww44ss - ", today() ), size = 2.5,
-             color="Grey30")
-    
-    
-```
-<br/>
-
 ### County Level Data    
 
 
@@ -1223,195 +1440,7 @@ kable(state_list, align = c("l", rep("c", 3))) %>%
 
 </center>
 
-# National Statistics    
 
-## Total & Active Cases, and Deaths   
-
-These trend charts show the national disease statistics. The raw data are shown. since these showdaily trends that are systematically related ot the M-F work week, possibly due to reporting delays, numbers showsn
-
-```{r, fig.height=6, fig.width=8, fig.align="center", warning=F, message=F}
-
-
-d_p <- final_plot_data %>%
-  ungroup()%>%
-  group_by(date) %>%
-  summarize(total_cases = sum(orig_cases), total_active = sum(rolling_baseline_14), total_deaths = sum(deaths), daily_cases = sum(daily_cases), total_daily = sum(daily_cases), daily_deaths = sum(daily_deaths)) %>%
-  mutate(r_e = daily_cases*12/(total_active+.1)) %>%
-  mutate(daily_deaths2 = total_deaths - lag(total_deaths)) %>%
-   mutate(daily_cases2 = total_cases - lag(total_cases)) %>%
-  mutate(mortality = 100*total_deaths/(total_cases+.1), daily_mortality = 100*daily_deaths/(total_daily+.1)) %>%
-  ungroup() %>%
-  yo
-
-
-
-
-p_total_cases <- ggplot(data = d_p, aes(x = date, y = total_cases) ) + 
-  geom_line(size = 0.8, color = "grey40") +
-  labs(title = "US Total Cases", subtitle = today(), y = "cases")+ 
-    annotate(geom="text", x=(max(d_p$date) - days(60)), 
-             y=max(0.95*d_p$total_cases), 
-             label=str_c((max(d_p$total_cases)/1000000)%>% round(2), " million total cases    "), size = 3.0,
-             color="steelblue4") +
-  theme_bw()
-
- 
-p1_daily <- ggplot(data = d_p, aes(x = date) ) + 
- geom_line(aes(x = date, y = daily_cases2), color = "#891815", size = 0.8, alpha = 0.8)+
-  labs(title = "Daily US Cases", subtitle = today(), y = "cases")+ 
-  annotate(geom="text", x=(max(d_p$date) - days(30)), 
-             y=(0.85*d_p[d_p$date == max(d_p$date),]$daily_cases[1]), 
-             label=str_c((d_p[d_p$date == max(d_p$date),]$daily_cases2[1]/1000000)%>%round(0), " cases    "), size = 3.0,
-             color="steelblue4") +
-  theme_bw()
-
-p1_daily_deaths <- ggplot(data = d_p, aes(x = date) ) + 
- geom_col(aes(y = daily_deaths2), color = "grey80", width = 0.7, alpha = 0.5)+
-  geom_line(aes(y = daily_deaths), size = 1, color = "#151589AA")+
-  labs(title = "Daily US Deaths (daily data and fit)", subtitle = today(), y = "deaths")+ 
-  annotate(geom="text", x=(max(d_p$date) - days(40)), 
-             y=(0.05*max(d_p$daily_deaths)), 
-             label=str_c("trend ", (d_p[d_p$date == max(d_p$date),]$daily_deaths[1])%>%round(0), " daily deaths    "), size = 3.0,
-             color="steelblue4") +
-  theme_bw()
-
-
-
-p_mortality <- ggplot(d_p, 
-       aes(x = date, y = mortality)) + 
-  geom_line(color = "#C46222", size = 1.5, alpha = 0.8) + 
-  labs(title = "US Mortality Rate", subtitle = today(), y = "mortaility (%)")+
-  annotate(geom="text", x=(max(d_p$date) - days(40)), 
-             y=0.05*max(d_p$mortality), 
-             label=str_c((d_p[d_p$date == max(d_p$date),]$mortality[1])%>%round(2), "% mortality on ", max(d_p$date)), size = 3.0,
-             color="steelblue4") +
-  theme_bw()
-
-
-
-
-p_daily_mortality <- ggplot(d_p, 
-       aes(x = date, y = daily_mortality)) + 
-  geom_line(color = "#C46232", size = 1, alpha = 0.8) + 
-  labs(title = "Daily Deaths/Cases", subtitle = today(), y = "mortaility (%)")+
-  annotate(geom="text", x=(max(d_p$date) - days(40)), 
-             y=0.05*max(d_p$daily_mortality), 
-             label=str_c((d_p[d_p$date == max(d_p$date),]$daily_mortality[1])%>%round(2), "% mortality"), size = 3.0,
-             color="steelblue4") +
-  theme_bw()
-
-p_total_deaths <- ggplot(d_p, 
-       aes(x = date, y = total_deaths)
-         ) + geom_line(color = "#A46242", size = 1, alpha = 0.8) + 
-  labs(title = "Total US Deaths", subtitle = today(), y = "deaths")+
-    annotate(geom="text", x=(max(d_p$date) - days(40)), 
-             y=max(0.05*d_p$total_deaths), 
-             label=str_c((max(d_p$total_deaths)/1000) %>% round(1), " thousand deaths  "), size = 3.0,
-             color="steelblue4") +
-  theme_bw()
-
-
-p_dailycases <- ggplot(d_p,
-                       aes(x = date, y = daily_cases2))  +
-  labs(title = "US Daily Cases", subtitle = today(), y = "cases")+
-  geom_col(color = "grey80", width = 0.7, alpha = 0.5) +
-  geom_line(aes(y = daily_cases), color = "#2462A2", size = 1.1, alpha = 1) + 
-    annotate(geom="text", x=(min(d_p$date) + days(60)), 
-             y=max(0.95*d_p$daily_cases), 
-             label=str_c("trend ",round(d_p[d_p$date == max(d_p$date),]$daily_cases[1]/1000,2)," thousand daily cases    "), size = 3.0,
-             color="steelblue4") +
-  theme_bw()
-
-
-p_r <- ggplot(d_p,
-                       aes(x = date, y = r_e)) + geom_line(color = "#5442E2", size = 1.5, alpha = 0.8) + 
-  labs(title = "Effective Reproduction Rate", subtitle = today(), y = "R_e")+
-  scale_y_log10()+
-  annotate(geom="text", x=(max(d_p$date) - days(40)), 
-             y=0.85*max(d_p$r_e), 
-             label=str_c("R_e = ",(d_p[d_p$date == max(d_p$date),]$r_e[1])%>%round(2)), size = 3.0,
-             color="steelblue4") +
-  theme_bw()
-
-
-
-grid.arrange(p_total_cases, p_dailycases, p_total_deaths, p1_daily_deaths,  nrow = 2)
-
-
-```
-    
-
-## Mortality Trend       
-
-
-```{r, fig.height=4, fig.width=6, fig.align="center"}
-grid.arrange(p_mortality,nrow = 1)
-
-```
-
-  
-
-
-## $R_e$ Trend   
-
-National effective reproduction rate 
-
-```{r, fig.height=4, fig.width=6, fig.align="center"}
-grid.arrange(p_r,nrow = 1)
-
-```
-
-## Distribution of $R_e$ Values    
-
-Howver, there is a wiude dirstubtion of $R_e$ across regions and counties.  The distributions in the graph below looks roughly symmetrical because the x-scale is logarithmic.  
-
-```{r, fig.height=3.5, fig.width=6, fig.align="center"}
-data_x <- final_plot_data %>%
-  group_by(county, date) %>%
-  mutate(control = 100*(1 - rolling_baseline_14/max(rolling_baseline_14))) %>%
-  ungroup()%>%
-  filter(date == max(date) | date == ymd("2020-06-22")| date == ymd("2020-05-07")) %>%
-  filter(is.finite(r_e)) %>%
-  mutate(date = as.factor(date))%>%
-  filter(r_e < 3 & r_e>0)%>%
-  select(r_e, date, control) %>%
-  yo
-
-
-ggplot(data_x, aes(r_e,y=..density.., fill = date)) + geom_histogram(bins =30 , position = "dodge") + geom_density(alpha = 0.2, bw = .04) + 
-  scale_fill_manual(values = c("lightgreen", "steelblue2", "salmon")) + labs(title = TeX("$R_e$ distribution for US Counties"), y = "density", x = TeX("$R_e$")) +theme_bw() + scale_x_log10()
-
-```
-
-## Distribution of *Baseline Control*
-Similarly for disease control, when take at the county level, there is a wide distribution of *Baseline Control*. 
-
-```{r, fig.height=3.5, fig.width=6, fig.align="center"}
-
-
-data_x <- final_plot_data %>%
-  group_by(county, date) %>%
-  mutate(control = 100*(1 - rolling_baseline_14/max(rolling_baseline_14))) %>%
-  ungroup()%>%
-  filter(date == max(date) | date == ymd("2020-07-15")| date == ymd("2020-05-18")) %>%
-  filter(is.finite(r_e)) %>%
-  mutate(date = as.factor(date))%>%
-  filter(r_e < 3 & r_e>0)%>%
-  select(r_e, date, control) %>%
-  yo
-
-
-
-# ggplot(data_x, aes(x = control, fill = date)) + geom_bar(stat = "bin", position = "dodge", bins =10, color = "transparent") + #geom_density(alpha = 0.2, bw = .04) + 
-#   scale_fill_manual(values =  c("palegreen","steelblue2", "salmon")) + labs(title = TeX("$Baseline Control$ distribution for US Counties"), y = "count", x = "control (%)") +theme_bw() 
-# 
-
-
-
-ggplot(data_x, aes(control,y=..density.., fill = date)) + geom_histogram(bins =4 , position = "dodge", color = "white") + #geom_density(alpha = 0.2, bw = .04) + 
-  scale_fill_manual(values = c("steelblue2", "lightgreen", "salmon")) + labs(title = TeX("$Baseline \\, Control$ distribution for US Counties"), y = "density", x = "control (%)") +theme_bw() + scale_x_continuous(breaks=c(0, 33, 67, 100))
-
-```
 
 
 
@@ -1969,7 +1998,7 @@ state_case_plot(final_plot_data, state_y)
 
 <center>
 
-```{r, warning = F, message = F, fig.align='center', fig.width = 9, fig.height = 8, echo = F, results = 'asis'}
+```{r, warning = F, message = F, fig.align='center', fig.width = 9, fig.height = 8, echo = F, results = 'asis', eval = F}
 
 severe_county_table2(final_plot_data, state_y)
 
@@ -2025,7 +2054,7 @@ state_case_plot(final_plot_data, state_y)
 
 <center>
 
-```{r, warning = F, message = F, fig.align='center', fig.width = 9, fig.height = 8, echo = F, results = 'asis'}
+```{r, warning = F, message = F, fig.align='center', fig.width = 9, fig.height = 8, echo = F, results = 'asis', eval = F}
 
 severe_county_table2(final_plot_data, state_y)
 
@@ -2104,7 +2133,7 @@ state_case_plot(final_plot_data, state_y)
 
 <center>
 
-```{r, warning = F, message = F, fig.align='center', fig.width = 9, fig.height = 8, echo = F, results = 'asis'}
+```{r, warning = F, message = F, fig.align='center', fig.width = 9, fig.height = 8, echo = F, results = 'asis', eval = F}
 
 severe_county_table2(final_plot_data, state_y)
 
@@ -2175,7 +2204,7 @@ state_case_plot(final_plot_data, state_y)
 
 <center>
 
-```{r, warning = F, message = F, fig.align='center', fig.width = 9, fig.height = 8, echo = F, results = 'asis'}
+```{r, warning = F, message = F, fig.align='center', fig.width = 9, fig.height = 8, echo = F, results = 'asis', eval = F}
 
 severe_county_table2(final_plot_data, state_y)
 
@@ -2240,7 +2269,7 @@ state_case_plot(final_plot_data, state_y)
 
 <center>
 
-```{r, warning = F, message = F, fig.align='center', fig.width = 9, fig.height = 8, echo = F, results = 'asis'}
+```{r, warning = F, message = F, fig.align='center', fig.width = 9, fig.height = 8, echo = F, results = 'asis', eval = F}
 
 severe_county_table2(final_plot_data, state_y)
 
@@ -2292,7 +2321,7 @@ state_case_plot(final_plot_data, state_y)
 
 <center>
 
-```{r, warning = F, message = F, fig.align='center', fig.width = 9, fig.height = 8, echo = F, results = 'asis'}
+```{r, warning = F, message = F, fig.align='center', fig.width = 9, fig.height = 8, echo = F, results = 'asis', eval = F}
 
 severe_county_table2(final_plot_data, state_y)
 
@@ -2347,7 +2376,7 @@ state_case_plot(final_plot_data, state_y)
 
 <center>
 
-```{r, warning = F, message = F, fig.align='center', fig.width = 9, fig.height = 8, echo = F, results = 'asis'}
+```{r, warning = F, message = F, fig.align='center', fig.width = 9, fig.height = 8, echo = F, results = 'asis', eval = F}
 
 severe_county_table2(final_plot_data, state_y)
 
@@ -2362,11 +2391,6 @@ county_plot(final_plot_data, county_x = "Tulsa", state_x = "OK")
 ```
 
 
-```{r}
-county_plot(final_plot_data, county_x = "Collin", state_x = "TX")
-
-```
-
 
 ```{r}
 county_plot(final_plot_data, county_x = "Dallas", state_x = "TX")
@@ -2374,15 +2398,6 @@ county_plot(final_plot_data, county_x = "Dallas", state_x = "TX")
 ```
 
 
-```{r}
-county_plot(final_plot_data, county_x = "Travis", state_x = "TX")
-
-```
-
-```{r}
-county_plot(final_plot_data, county_x = "Harris", state_x = "TX")
-
-```
 
 ## Michigan & Wisconsin
 
@@ -2406,7 +2421,7 @@ state_case_plot(final_plot_data, state_y)
 
 <center>
 
-```{r, warning = F, message = F, fig.align='center', fig.width = 9, fig.height = 8, echo = F, results = 'asis'}
+```{r, warning = F, message = F, fig.align='center', fig.width = 9, fig.height = 8, echo = F, results = 'asis', eval = F}
 
 severe_county_table2(final_plot_data, state_y)
 
@@ -2445,7 +2460,7 @@ state_case_plot(final_plot_data, state_y)
 
 <center>
 
-```{r, warning = F, message = F, fig.align='center', fig.width = 9, fig.height = 8, echo = F, results = 'asis'}
+```{r, warning = F, message = F, fig.align='center', fig.width = 9, fig.height = 8, echo = F, results = 'asis', eval = F}
 
 severe_county_table2(final_plot_data, state_y)
 
@@ -2495,7 +2510,7 @@ state_case_plot(final_plot_data, state_y)
 
 <center>
 
-```{r, warning = F, message = F, fig.align='center', fig.width = 9, fig.height = 8, echo = F, results = 'asis'}
+```{r, warning = F, message = F, fig.align='center', fig.width = 9, fig.height = 8, echo = F, results = 'asis', eval = F}
 
 severe_county_table2(final_plot_data, state_y)
 
@@ -2504,11 +2519,6 @@ severe_county_table2(final_plot_data, state_y)
 
 </center> 
 
-```{r}
-county_plot(final_plot_data, county_x = "Hartford", state_x = "CT")
-
-
-```
 
 
 ```{r}
@@ -2524,11 +2534,6 @@ county_plot(final_plot_data, county_x = "Suffolk", state_x = "MA")
 
 ```
 
-```{r}
-county_plot(final_plot_data, county_x = "Providence", state_x = "RI")
-
-
-```
 
 ## New York
 
@@ -2553,7 +2558,7 @@ state_case_plot(final_plot_data, state_y = c("NY"))
 
 <center>
 
-```{r, warning = F, message = F, fig.align='center', fig.width = 9, fig.height = 8, echo = F, results = 'asis'}
+```{r, warning = F, message = F, fig.align='center', fig.width = 9, fig.height = 8, echo = F, results = 'asis', eval = F}
 
 severe_county_table2(final_plot_data, state_y)
 
@@ -2591,7 +2596,7 @@ state_case_plot(final_plot_data, state_y)
 
 <center>
 
-```{r, warning = F, message = F, fig.align='center', fig.width = 9, fig.height = 8, echo = F, results = 'asis'}
+```{r, warning = F, message = F, fig.align='center', fig.width = 9, fig.height = 8, echo = F, results = 'asis', eval = F}
 
 severe_county_table2(final_plot_data, state_y)
 
@@ -2623,7 +2628,7 @@ state_case_plot(final_plot_data, state_y)
 
 <center>
 
-```{r, warning = F, message = F, fig.align='center', fig.width = 9, fig.height = 8, echo = F, results = 'asis'}
+```{r, warning = F, message = F, fig.align='center', fig.width = 9, fig.height = 8, echo = F, results = 'asis', eval = F}
 
 severe_county_table2(final_plot_data, state_y)
 
@@ -2632,10 +2637,6 @@ severe_county_table2(final_plot_data, state_y)
 
 </center> 
 
-```{r}
-county_plot(final_plot_data, county_x = "Mecklenburg", state_x = "NC")
-
-```
 
 ```{r}
 county_plot(final_plot_data, county_x = "Durham", state_x = "NC")
@@ -2650,16 +2651,6 @@ county_plot(final_plot_data, county_x = "Charleston", state_x = "SC")
 
 
 ```
-
-
-
-```{r}
-county_plot(final_plot_data, county_x = "Richland", state_x = "SC")
-
-
-```
-
-
 
 
 
@@ -2686,7 +2677,7 @@ state_case_plot(final_plot_data, state_y)
 
 <center>
 
-```{r, warning = F, message = F, fig.align='center', fig.width = 9, fig.height = 8, echo = F, results = 'asis'}
+```{r, warning = F, message = F, fig.align='center', fig.width = 9, fig.height = 8, echo = F, results = 'asis', eval = F}
 
 severe_county_table2(final_plot_data, state_y)
 
@@ -2707,15 +2698,6 @@ county_plot(final_plot_data, county_x = "Missoula", state_x = "MT")
 ```
 
 
-```{r}
-county_plot(final_plot_data, county_x = "Gallatin", state_x = "MT")
-
-```
-
-```{r}
-county_plot(final_plot_data, county_x = "Ada", state_x = "ID")
-
-```
 
 ## Midwest
 
@@ -2741,7 +2723,7 @@ state_case_plot(final_plot_data, state_y)
 
 <center>
 
-```{r, warning = F, message = F, fig.align='center', fig.width = 9, fig.height = 8, echo = F, results = 'asis'}
+```{r, warning = F, message = F, fig.align='center', fig.width = 9, fig.height = 8, echo = F, results = 'asis', eval = F}
 
 severe_county_table2(final_plot_data, state_y)
 
@@ -2756,10 +2738,7 @@ county_plot(final_plot_data, county_x = "Cook", state_x = "IL")
 
 ```
 
-```{r}
-county_plot(final_plot_data, county_x = "Kane", state_x = "IL")
 
-```
 
 ```{r}
 county_plot(final_plot_data, county_x = "Linn", state_x = "IA")
@@ -2797,7 +2776,7 @@ state_case_plot(final_plot_data, state_y)
 
 <center>
 
-```{r, warning = F, message = F, fig.align='center', fig.width = 9, fig.height = 8, echo = F, results = 'asis'}
+```{r, warning = F, message = F, fig.align='center', fig.width = 9, fig.height = 8, echo = F, results = 'asis', eval = F}
 
 severe_county_table2(final_plot_data, state_y)
 
@@ -2839,7 +2818,7 @@ state_case_plot(final_plot_data, state_y)
 
 <center>
 
-```{r, warning = F, message = F, fig.align='center', fig.width = 9, fig.height = 8, echo = F, results = 'asis'}
+```{r, warning = F, message = F, fig.align='center', fig.width = 9, fig.height = 8, echo = F, results = 'asis', eval = F}
 
 severe_county_table2(final_plot_data, state_y)
 
@@ -2888,7 +2867,7 @@ Today is `r today()`.
 `r as.numeric (today()-ymd("2020-06-12"))` days ago: "Severity" tables to county analysis. Severity is computed from the number of new cases expected at current $R_e$ for 6 days in the future. It does not trend $R_e$, which could be a future enhancement.         
 `r as.numeric (today()-ymd("2020-06-20"))` days ago: Added census API functionality to compute _per capita_ infection rates.  Reduced spline spar = 0.65.     
 `r as.numeric (today()-ymd("2020-06-25"))` days ago: Added Per Capita US Map.   
-`r as.numeric (today()-ymd("2020-06-27"))` days ago: Deprecated national map.   
+`r as.numeric (today()-ymd("2020-06-27"))` days ago: Deprecated national map. can be found [here]([https://rpubs.com/ww44ss/NATIONAL_TOTAL_COVID_CASES).      
 `r as.numeric (today()-ymd("2020-07-01"))` days ago: added state "Hot 10" analysis.    
 `r as.numeric (today()-ymd("2020-07-06"))` days ago: cleaned up county analysis to show cases and actual data. Moved "Hot 10" analysis to separate web page. Moved "Hot 10" [here](https://rpubs.com/ww44ss/HOT_10).   
 `r as.numeric (today()-ymd("2020-07-08"))` days ago: added per capita disease and mortaility to state-level analysis.   
@@ -2899,7 +2878,8 @@ Today is `r today()`.
 `r as.numeric (today()-ymd("2020-08-07"))` days ago: fixed normalization error on total disease stats plot.  
 `r as.numeric (today()-ymd("2020-08-14"))` days ago: Corrected some text matching in generating county level plots of $R_e$.  
 `r as.numeric (today()-ymd("2020-08-20"))` days ago: adapted knot spacing for spline.   
-`r as.numeric (today()-ymd("2020-09-03"))` days ago:using separate knot spacing for spline fits of deaths and cases.   
+`r as.numeric (today()-ymd("2020-09-03"))` days ago:using separate knot spacing for spline fits of deaths and cases.  
+`r as.numeric (today()-ymd("2020-09-05"))` days ago: MAJOR UPDATE. Moved things around. Added per capita severity map. 
 
 
 
