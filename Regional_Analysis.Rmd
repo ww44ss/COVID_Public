@@ -448,6 +448,16 @@ file_name_date_append <- today() %>%
     }
 ```
 
+
+
+```{r, eval = F}
+governors <- read_csv("State_Governors.csv")
+
+```
+
+
+
+
 # National Statistics    
 
 ## Total & Active Cases, and Deaths   
@@ -742,7 +752,7 @@ p_per_capita <-
   ggplot() + 
     geom_sf(data = data_x, aes(geometry = geom, fill = daily_cases_per_capita), color = "white", size = 0.6, alpha = 0.85) + 
     coord_sf(xlim = c(as.numeric(bbox[1]), as.numeric(bbox[3])), ylim = c(as.numeric(bbox[2]), as.numeric(bbox[4])), expand = FALSE) +
-    scale_fill_gradientn(colors =plot_colors, name = TeX("Cases/100k"), limits = c(0, 50)) + 
+    scale_fill_gradientn(colors =plot_colors, name = TeX("Cases/100k"), limits = c(0, 50), na.value = "red") + 
     theme_bw()+
     theme(axis.title.x=element_blank(),
           axis.text.x=element_blank(),
@@ -766,7 +776,7 @@ p_short_term_change <-
   ggplot() + 
     geom_sf(data = data_x, aes(geometry = geom, fill = 100000*short_term_change/population), color = "white", size = 0.6, alpha = 0.85) + 
     coord_sf(xlim = c(as.numeric(bbox[1]), as.numeric(bbox[3])), ylim = c(as.numeric(bbox[2]), as.numeric(bbox[4])), expand = FALSE) +
-    scale_fill_gradientn(colors =plot_colors, name = TeX("Cases/100k"), limits = c(0, 50)) + 
+    scale_fill_gradientn(colors =plot_colors, name = TeX("Cases/100k"), limits = c(0, 50), na.value = "red") + 
     theme_bw()+
     theme(axis.title.x=element_blank(),
           axis.text.x=element_blank(),
