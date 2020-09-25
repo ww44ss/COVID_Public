@@ -518,7 +518,7 @@ d_p <- d_p %>%
 
 p_total_cases <- ggplot(data = d_p, aes(x = date, y = total_cases, color = party) ) + 
   geom_line(size = 1.5) +
-  labs(title = "US Total Cases", subtitle = "By State Governor's party affiliation", y = "cases")+ 
+  labs(title = "US Total Cases by State", subtitle = "State Governor's party affiliation indicated", y = "cases")+ 
   scale_color_manual(values = c("blue", "red"))+
     # annotate(geom="text", x=(max(d_p$date) - days(60)), 
     #          y=max(0.95*d_p$total_cases), 
@@ -536,7 +536,7 @@ p_total_cases <- ggplot(data = d_p, aes(x = date, y = total_cases, color = party
  
 p1_daily <- ggplot(data = d_p, aes(x = date, color = party) ) + 
  geom_line(aes(x = date, y = daily_cases), size = 0.8, alpha = 0.8)+
-  labs(title = "Daily Cases", subtitle = "By State Governor's party affiliation", y = "cases")+ 
+  labs(title = "Daily Cases by State", subtitle = "State Governor's party affiliation indicated", y = "cases")+ 
   scale_color_manual(values = c("blue", "red"))+
   # annotate(geom="text", x=(max(d_p$date) - days(30)), 
   #            y=(0.85*d_p[d_p$date == max(d_p$date),]$daily_cases[1]), 
@@ -555,7 +555,7 @@ p1_daily_deaths <- ggplot(data = d_p, aes(x = date, color = party) ) +
  #geom_col(aes(y = daily_deaths), color = "grey80", width = 0.7, alpha = 0.5)+
   geom_line(aes(y = daily_deaths), size = 1.1)+
   scale_color_manual(values = c("blue", "red"))+
-  labs(title = "Daily Deaths", subtitle = "By State Governor's party affiliation", y = "deaths")+ 
+  labs(title = "Daily Deaths by State", subtitle = "By State Governor's party affiliation indicated", y = "deaths")+ 
   # annotate(geom="text", x=(max(d_p$date) - days(40)), 
   #            y=(0.05*max(d_p$daily_deaths)), 
   #            label=str_c("trend ", (d_p[d_p$date == max(d_p$date),]$daily_deaths[1])%>%round(0), " daily deaths    "), size = 3.0,
@@ -574,7 +574,7 @@ p_total_deaths <- ggplot(d_p,
        aes(x = date, y = total_deaths, color = party)
          ) + geom_line(size = 1.1, alpha = 0.8) +
   scale_color_manual(values = c("blue", "red"))+
-  labs(title = "Total Deaths", subtitle = "By State Governor's party affiliation", y = "deaths")+
+  labs(title = "Total Deaths by State", subtitle = "State Governor's party affiliation indicated", y = "deaths")+
     # annotate(geom="text", x=(max(d_p$date) - days(40)), 
     #          y=max(0.05*d_p$total_deaths), 
     #          label=str_c((max(d_p$total_deaths)/1000) %>% round(1), " thousand deaths  "), size = 3.0,
@@ -591,7 +591,7 @@ p_total_deaths <- ggplot(d_p,
 
 p_dailycases <- ggplot(d_p,
                        aes(x = date, y = daily_cases, color = party))  +
-  labs(title = "Daily Cases", subtitle = "By State Governor's party affiliation", y = "cases")+
+  labs(title = "Daily Cases by State", subtitle = "State Governor's party affiliation indicated", y = "cases")+
   scale_color_manual(values = c("blue", "red"))+
   geom_line(size = 1.1, alpha = 1) + 
     # annotate(geom="text", x=(min(d_p$date) + days(60)), 
@@ -643,7 +643,7 @@ grid.arrange(p_total_cases, p_dailycases, p_total_deaths, p1_daily_deaths,  nrow
 
 p_total_cases <- ggplot(data = d_p, aes(x = date, y = cases_per_100k, color = party) ) + 
   geom_line(size = 1.5) +
-  labs(title = "Total Cases/100k Population", subtitle = element_text("By State Governor's party affiliation", size = 3), y = "cases/100k")+ 
+  labs(title = "Total Cases, by State, per 100k Population", subtitle = element_text("State Governor's party affiliation indicated", size = 3), y = "cases/100k")+ 
   scale_color_manual(values = c("blue", "red"))+
     # annotate(geom="text", x=(max(d_p$date) - days(60)), 
     #          y=max(0.95*d_p$total_cases), 
@@ -651,7 +651,7 @@ p_total_cases <- ggplot(data = d_p, aes(x = date, y = cases_per_100k, color = pa
     #          color="steelblue4") +
   theme_bw()+ 
   theme(legend.title = element_blank(),
-        legend.position = c(.7, .75),
+        legend.position = c(.3, .75),
         legend.key.size = unit(.2, "cm"),
   legend.key.width = unit(0.2,"cm"),
   plot.subtitle = element_text(color = "grey20", size = 9))
@@ -665,14 +665,14 @@ p1_daily_deaths <- ggplot(data = d_p, aes(x = date, color = party) ) +
  #geom_col(aes(y = daily_deaths), color = "grey80", width = 0.7, alpha = 0.5)+
   geom_line(aes(y = daily_deaths_per_100k), size = 1.1)+
   scale_color_manual(values = c("blue", "red"))+
-  labs(title = "Daily Deaths/100k Population", subtitle = element_text("By State Governor's party affiliation", size = 3), y = "daily deaths/100k")+ 
+  labs(title = "Daily Deaths, by State, per 100k Population", subtitle = element_text("State Governor's party affiliation", size = 3), y = "daily deaths/100k")+ 
   # annotate(geom="text", x=(max(d_p$date) - days(40)), 
   #            y=(0.05*max(d_p$daily_deaths)), 
   #            label=str_c("trend ", (d_p[d_p$date == max(d_p$date),]$daily_deaths[1])%>%round(0), " daily deaths    "), size = 3.0,
   #            color="steelblue4") +
   theme_bw()+ 
   theme(legend.title = element_blank(),
-        legend.position = c(.3, .75),
+        legend.position = c(.7, .75),
         legend.key.size = unit(.2, "cm"),
   legend.key.width = unit(0.2,"cm"),
   plot.subtitle = element_text(color = "grey20", size = 9))
@@ -684,7 +684,7 @@ p_total_deaths <- ggplot(d_p,
        aes(x = date, y = deaths_per_100k, color = party)
          ) + geom_line(size = 1.1, alpha = 0.8) +
   scale_color_manual(values = c("blue", "red"))+
-  labs(title = "Total Deaths/100k Population", subtitle = element_text("By State Governor's party affiliation", size = 3), y = "deaths")+
+  labs(title = "Total Deaths, by State, per 100k Population", subtitle = element_text("State Governor's party affiliation", size = 3), y = "deaths")+
     # annotate(geom="text", x=(max(d_p$date) - days(40)), 
     #          y=max(0.05*d_p$total_deaths), 
     #          label=str_c((max(d_p$total_deaths)/1000) %>% round(1), " thousand deaths  "), size = 3.0,
@@ -701,7 +701,7 @@ p_total_deaths <- ggplot(d_p,
 
 p_dailycases <- ggplot(d_p,
                        aes(x = date, y = daily_cases_per_100k, color = party))  +
-  labs(title = "Daily Cases/100k Population", subtitle = element_text("By State Governor's party affiliation", size = 3), y = "cases/100k")+
+  labs(title = "Daily Cases, by State, per 100k Population", subtitle = element_text("State Governor's party affiliation indicated", size = 3), y = "cases/100k")+
   scale_color_manual(values = c("blue", "red"))+
   geom_line(size = 1.1, alpha = 1) + 
     # annotate(geom="text", x=(min(d_p$date) + days(60)), 
@@ -710,7 +710,7 @@ p_dailycases <- ggplot(d_p,
     #          color="steelblue4") +
   theme_bw()+ 
   theme(legend.title = element_blank(),
-        legend.position = c(.7, .75),
+        legend.position = c(.3, .75),
         legend.key.size = unit(.2, "cm"),
   legend.key.width = unit(0.2,"cm"),
   plot.subtitle = element_text(color = "grey20", size = 9))
@@ -724,7 +724,7 @@ grid.arrange(p_total_cases, p_dailycases, p_total_deaths, p1_daily_deaths,  nrow
 
 ```  
 
-## Bar chart of Total Cases
+## Total Cases per 100k Population 
 
 ```{r,  fig.align='center', fig.width = 6, fig.height = 4}
 
@@ -752,7 +752,7 @@ state_list <- data_x %>%
 ggplot(state_list, aes(x = fct_reorder(ST, desc(per_capita)), y = per_capita, fill = party)) + 
   geom_col() + 
   scale_fill_manual(values = c("blue", "red")) + 
-  labs(title = "COVID Cases per 100k by State", subtitle = "Governor's Party Affiliation Indicated", x = "State", y = "Cases per 100k") + 
+  labs(title = "COVID Cases, by State, per 100k Population ", subtitle = "Governor's Party Affiliation Indicated", x = "State", y = "Cases per 100k") + 
   theme_bw()+
   theme(axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5, hjust = 1), 
         legend.title = element_blank(),
@@ -769,7 +769,8 @@ ggplot(state_list, aes(x = fct_reorder(ST, desc(per_capita)), y = per_capita, fi
 
 
 ```
-## Bar chart of Total Cases
+## Total Deaths by State Per 100k Population    
+
 
 ```{r,  fig.align='center', fig.width = 6, fig.height = 4}
 
@@ -796,7 +797,7 @@ state_list <- data_x %>%
 ggplot(state_list, aes(x = fct_reorder(ST, desc(per_capita)), y = per_capita, fill = party)) + 
   geom_col() + 
   scale_fill_manual(values = c("blue", "red")) + 
-  labs(title = "COVID Deaths per 100k by State", subtitle = "Governor's Party Affiliation Indicated", x = "State", y = "Deaths per 100k") + 
+  labs(title = "COVID Deaths, by State, per 100k Population", subtitle = "Governor's Party Affiliation Indicated", x = "State", y = "Deaths per 100k") + 
   theme_bw()+
   theme(axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5, hjust = 1), 
         legend.title = element_blank(),
@@ -813,6 +814,69 @@ ggplot(state_list, aes(x = fct_reorder(ST, desc(per_capita)), y = per_capita, fi
 
 
 ```
+
+
+## Deaths by State Since 2020-06-01 Per 100k Population    
+
+Many State Governors relaxed as early as Mid May the stay at home orders implemented to protect the public from COVID-19. Subequently cases surged, resulting in what were largely preventable deaths.   
+
+
+```{r,  fig.align='center', fig.width = 6, fig.height = 4}
+
+
+
+data_x <- final_plot_data %>%
+  select(-lat, -lon)%>%
+  group_by(state, ST, party) %>%
+  #mutate(max_baseline = max(rolling_baseline_14)) %>%
+  filter(date == max(date) ) %>%
+  summarize(deaths = sum(deaths), daily_deaths = sum(daily_deaths), rolling_baseline_14 = sum(rolling_baseline_14), population = sum(population)) %>%
+  select(state, ST, deaths, daily_deaths, rolling_baseline_14, population, party) %>%
+  yo
+
+
+data_y <- final_plot_data %>%
+  select(-lat, -lon)%>%
+  group_by(state, ST, party) %>%
+  #mutate(max_baseline = max(rolling_baseline_14)) %>%
+  filter(date == ymd("2020-06-01") ) %>%
+  summarize(deaths = sum(deaths), daily_deaths = sum(daily_deaths), rolling_baseline_14 = sum(rolling_baseline_14), population = sum(population)) %>%
+  ungroup() %>%
+  select(ST, deaths) %>%
+  rename(baseline_deaths = deaths) %>%
+  yo
+
+data_x <- data_x %>%
+  left_join(data_y, by = "ST") %>%
+  mutate(deaths = deaths - baseline_deaths) %>%
+  yo
+
+
+
+state_list <- data_x %>% 
+  ungroup()%>%
+  mutate(deaths = round(deaths,0 ), daily_deaths = round(daily_deaths, 0), per_capita = round(100000*deaths/population, 1))%>%
+  select (state, deaths, daily_deaths, per_capita, party , ST)%>%
+  arrange(desc(per_capita))%>%
+  ungroup()%>%
+  yo
+
+ggplot(state_list, aes(x = fct_reorder(ST, desc(per_capita)), y = per_capita, fill = party)) + 
+  geom_col() + 
+  scale_fill_manual(values = c("blue", "red")) + 
+  labs(title = "COVID Deaths by State, since 2020-06-01, per 100k Population", subtitle = "Governor's Party Affiliation Indicated by Color", x = "State", y = "Deaths per 100k") + 
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5, hjust = 1), 
+        legend.title = element_blank(),
+        legend.text = element_text(color = "grey10", size = 10),
+        legend.position = c(.7, .75),
+        legend.key.size = unit(.2, "cm"),
+  legend.key.width = unit(0.2,"cm")) 
+
+
+
+```
+
 
 
 
