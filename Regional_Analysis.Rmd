@@ -257,8 +257,8 @@ for(fips_x in fips_list) {
    nmax = max(fips_data$n)
    
    # set a degrees of freedom
-   df_c = as.integer(nmax/5 + 2)
-   df_d = as.integer(nmax/6.5 + 2)
+   df_c = as.integer(nmax/6.1 + 2)
+   df_d = as.integer(nmax/7.5 + 2)
   
   spline_model_cases <- smooth.spline(x = fips_data$n, y = fips_data$log_cases, keep.data = F, df=df_c)
   spline_model_deaths <- smooth.spline(x = fips_data$n, y = fips_data$log_deaths, keep.data = F, df=df_d)
@@ -655,7 +655,7 @@ data_x <- final_plot_data %>%
   mutate(r_e = ifelse(r_e > 1.5, 1.5, r_e)) %>%
   mutate(r_e = ifelse(r_e < 0.66, 0.66, r_e)) %>%
   mutate(daily_cases_per_capita = 10^5*daily_cases/population) %>%
-  mutate(short_term_change = daily_cases*(0.5*r_e^2))%>%
+  mutate(short_term_change = daily_cases*(r_e))%>%
   yo
 
 data_x<-states %>%
@@ -680,7 +680,7 @@ t_cases <-
   ggplot() + 
     geom_sf(data = data_x, aes(geometry = geom, fill = cases), color = "white", size = 0.6, alpha = 0.85) + 
     coord_sf(xlim = c(as.numeric(bbox[1]), as.numeric(bbox[3])), ylim = c(as.numeric(bbox[2]), as.numeric(bbox[4])), expand = FALSE) +
-    scale_fill_gradientn(colors =plot_colors, name = TeX("Cases"), limits = c(0, 800000)) + 
+    scale_fill_gradientn(colors =plot_colors, name = TeX("Cases"), limits = c(0, 900000), na.value = "red") + 
     theme_bw()+
     theme(axis.title.x=element_blank(),
           axis.text.x=element_blank(),
@@ -704,7 +704,7 @@ t_cases_per_capita <-
   ggplot() + 
     geom_sf(data = data_x, aes(geometry = geom, fill = 100000* cases/population), color = "white", size = 0.6, alpha = 0.85) + 
     coord_sf(xlim = c(as.numeric(bbox[1]), as.numeric(bbox[3])), ylim = c(as.numeric(bbox[2]), as.numeric(bbox[4])), expand = FALSE) +
-    scale_fill_gradientn(colors =plot_colors, name = TeX("Cases/100k"), limits = c(0, 3500)) + 
+    scale_fill_gradientn(colors =plot_colors, name = TeX("Cases/100k"), limits = c(0, 4000), na.value = "red") + 
     theme_bw()+
     theme(axis.title.x=element_blank(),
           axis.text.x=element_blank(),

@@ -49,6 +49,7 @@ library(forcats)
 library(tidycensus)
 library(prettydoc)
 library(latex2exp)
+library(ggrepel)
 
 yo <- function(x){x}
 
@@ -473,7 +474,7 @@ final_plot_data <- final_plot_data %>%
 
 # National Statistics    
 
-## Total & Active Cases, and Deaths   
+## Total Cases and Deaths   
 
 These trend charts show the national disease statistics. The raw data are shown. since these showdaily trends that are systematically related ot the M-F work week, possibly due to reporting delays, numbers showsn
 
@@ -518,7 +519,7 @@ d_p <- d_p %>%
 
 p_total_cases <- ggplot(data = d_p, aes(x = date, y = total_cases, color = party) ) + 
   geom_line(size = 1.5) +
-  labs(title = "US Total Cases by State", subtitle = "State Governor's party affiliation indicated", y = "cases")+ 
+  labs(title = "US Total Cases", subtitle = "By State Governor's Party Affiliation", y = "cases")+ 
   scale_color_manual(values = c("blue", "red"))+
     # annotate(geom="text", x=(max(d_p$date) - days(60)), 
     #          y=max(0.95*d_p$total_cases), 
@@ -536,7 +537,7 @@ p_total_cases <- ggplot(data = d_p, aes(x = date, y = total_cases, color = party
  
 p1_daily <- ggplot(data = d_p, aes(x = date, color = party) ) + 
  geom_line(aes(x = date, y = daily_cases), size = 0.8, alpha = 0.8)+
-  labs(title = "Daily Cases by State", subtitle = "State Governor's party affiliation indicated", y = "cases")+ 
+  labs(title = "Daily Cases", subtitle = "By State Governor's Party Affiliation", y = "cases")+ 
   scale_color_manual(values = c("blue", "red"))+
   # annotate(geom="text", x=(max(d_p$date) - days(30)), 
   #            y=(0.85*d_p[d_p$date == max(d_p$date),]$daily_cases[1]), 
@@ -555,7 +556,7 @@ p1_daily_deaths <- ggplot(data = d_p, aes(x = date, color = party) ) +
  #geom_col(aes(y = daily_deaths), color = "grey80", width = 0.7, alpha = 0.5)+
   geom_line(aes(y = daily_deaths), size = 1.1)+
   scale_color_manual(values = c("blue", "red"))+
-  labs(title = "Daily Deaths by State", subtitle = "By State Governor's party affiliation indicated", y = "deaths")+ 
+  labs(title = "Daily Deaths", subtitle = "By State Governor's Party Affiliation", y = "deaths")+ 
   # annotate(geom="text", x=(max(d_p$date) - days(40)), 
   #            y=(0.05*max(d_p$daily_deaths)), 
   #            label=str_c("trend ", (d_p[d_p$date == max(d_p$date),]$daily_deaths[1])%>%round(0), " daily deaths    "), size = 3.0,
@@ -574,7 +575,7 @@ p_total_deaths <- ggplot(d_p,
        aes(x = date, y = total_deaths, color = party)
          ) + geom_line(size = 1.1, alpha = 0.8) +
   scale_color_manual(values = c("blue", "red"))+
-  labs(title = "Total Deaths by State", subtitle = "State Governor's party affiliation indicated", y = "deaths")+
+  labs(title = "Total Deaths", subtitle = "By State Governor's Party Affiliation", y = "deaths")+
     # annotate(geom="text", x=(max(d_p$date) - days(40)), 
     #          y=max(0.05*d_p$total_deaths), 
     #          label=str_c((max(d_p$total_deaths)/1000) %>% round(1), " thousand deaths  "), size = 3.0,
@@ -591,7 +592,7 @@ p_total_deaths <- ggplot(d_p,
 
 p_dailycases <- ggplot(d_p,
                        aes(x = date, y = daily_cases, color = party))  +
-  labs(title = "Daily Cases by State", subtitle = "State Governor's party affiliation indicated", y = "cases")+
+  labs(title = "Daily Cases", subtitle = "By State Governor's Party Affiliation", y = "cases")+
   scale_color_manual(values = c("blue", "red"))+
   geom_line(size = 1.1, alpha = 1) + 
     # annotate(geom="text", x=(min(d_p$date) + days(60)), 
@@ -611,7 +612,7 @@ p_dailycases <- ggplot(d_p,
 p_r <- 
   ggplot(d_p %>% filter(date >= ymd("2020-03-21")),
                        aes(x = date, y = r_e, color = party)) + geom_line(size = 1.1, alpha = 0.8) + geom_smooth(span = .3)+
-  labs(title = "Effective Reproduction Rate", subtitle = "Smoothed Trend Added with Estimated Variance", y = "R_e")+
+  labs(title = "Effective Reproduction Rate", subtitle = "By State Governor's party affiliation", y = "R_e")+
   scale_color_manual(values = c("blue", "red"))+
   scale_y_log10()+
   # annotate(geom="text", x=(max(d_p$date) - days(40)), 
@@ -633,6 +634,10 @@ grid.arrange(p_total_cases, p_dailycases, p_total_deaths, p1_daily_deaths,  nrow
 
 ```
 
+## Cases and Deaths Per 100k Population   
+
+This is similar data with the data normalized to the population. The conclusions don't change dramatically, but do reflect the sparser population of Republican led States.   
+
 ```{r, fig.height=6, fig.width=8, fig.align="center", warning=F, message=F}
 
 
@@ -643,7 +648,7 @@ grid.arrange(p_total_cases, p_dailycases, p_total_deaths, p1_daily_deaths,  nrow
 
 p_total_cases <- ggplot(data = d_p, aes(x = date, y = cases_per_100k, color = party) ) + 
   geom_line(size = 1.5) +
-  labs(title = "Total Cases, by State, per 100k Population", subtitle = element_text("State Governor's party affiliation indicated", size = 3), y = "cases/100k")+ 
+  labs(title = "Total Cases per 100k Population", subtitle = element_text("By State Governor's Party Affiliation", size = 3), y = "cases per 100k Population")+ 
   scale_color_manual(values = c("blue", "red"))+
     # annotate(geom="text", x=(max(d_p$date) - days(60)), 
     #          y=max(0.95*d_p$total_cases), 
@@ -665,7 +670,7 @@ p1_daily_deaths <- ggplot(data = d_p, aes(x = date, color = party) ) +
  #geom_col(aes(y = daily_deaths), color = "grey80", width = 0.7, alpha = 0.5)+
   geom_line(aes(y = daily_deaths_per_100k), size = 1.1)+
   scale_color_manual(values = c("blue", "red"))+
-  labs(title = "Daily Deaths, by State, per 100k Population", subtitle = element_text("State Governor's party affiliation", size = 3), y = "daily deaths/100k")+ 
+  labs(title = "Daily Deaths per 100k Population", subtitle = element_text("By State Governor's Party Affiliation", size = 3), y = "daily deaths per 100k Population")+ 
   # annotate(geom="text", x=(max(d_p$date) - days(40)), 
   #            y=(0.05*max(d_p$daily_deaths)), 
   #            label=str_c("trend ", (d_p[d_p$date == max(d_p$date),]$daily_deaths[1])%>%round(0), " daily deaths    "), size = 3.0,
@@ -684,7 +689,7 @@ p_total_deaths <- ggplot(d_p,
        aes(x = date, y = deaths_per_100k, color = party)
          ) + geom_line(size = 1.1, alpha = 0.8) +
   scale_color_manual(values = c("blue", "red"))+
-  labs(title = "Total Deaths, by State, per 100k Population", subtitle = element_text("State Governor's party affiliation", size = 3), y = "deaths")+
+  labs(title = "Total Deaths per 100k Population", subtitle = element_text("By State Governor's Party Affiliation", size = 3), y = "deaths per 100k Population")+
     # annotate(geom="text", x=(max(d_p$date) - days(40)), 
     #          y=max(0.05*d_p$total_deaths), 
     #          label=str_c((max(d_p$total_deaths)/1000) %>% round(1), " thousand deaths  "), size = 3.0,
@@ -701,7 +706,7 @@ p_total_deaths <- ggplot(d_p,
 
 p_dailycases <- ggplot(d_p,
                        aes(x = date, y = daily_cases_per_100k, color = party))  +
-  labs(title = "Daily Cases, by State, per 100k Population", subtitle = element_text("State Governor's party affiliation indicated", size = 3), y = "cases/100k")+
+  labs(title = "Daily Cases per 100k Population", subtitle = element_text("By State Governor's Party Affiliation", size = 3), y = "cases per 100k Population")+
   scale_color_manual(values = c("blue", "red"))+
   geom_line(size = 1.1, alpha = 1) + 
     # annotate(geom="text", x=(min(d_p$date) + days(60)), 
@@ -724,7 +729,50 @@ grid.arrange(p_total_cases, p_dailycases, p_total_deaths, p1_daily_deaths,  nrow
 
 ```  
 
-## Total Cases per 100k Population 
+## Trend Chart of Per Capita Deaths   
+
+
+```{r,  fig.align='center', fig.width = 8, fig.height = 6}
+
+
+
+data_x <- final_plot_data %>%
+  select(-lat, -lon)%>%
+  group_by(state, ST, party, date) %>%
+  summarize(deaths = sum(deaths), daily_deaths = sum(daily_deaths), population = sum(population)) %>%
+  select(state, ST, deaths, daily_deaths, population, party, date) %>%
+  mutate(deaths_per_100k = deaths*100000/population, daily_deaths_per_100k = daily_deaths*100000/population) %>%
+  ungroup() %>%
+  yo
+
+
+
+
+
+ggplot(data_x, aes(x = date, y = deaths_per_100k, group = ST, color = party)) + 
+  geom_line(size = 1.3, alpha = 0.4) + 
+  geom_text_repel(data = data_x %>% filter(date == max(date)) %>% mutate(date = date + days(5)), aes(x = date, label = ST), size = 2.5, color = "grey10")+
+  scale_color_manual(values = c("blue", "red")) + 
+  labs(title = "COVID Deaths per 100k Population vs. Time for US States", subtitle = "Governor's Party Affiliation Indicated by Color", x = "Date", y = "Deaths per 100k") + 
+  theme_bw()+
+  theme(legend.title = element_blank(),
+        legend.text = element_text(color = "grey10", size = 10),
+        legend.position = c(.67, .85),
+        legend.key.size = unit(.2, "cm"),
+  legend.key.width = unit(0.2,"cm")) +
+  facet_grid(.~party)
+
+
+
+```
+
+
+
+# State-Level Bar Charts    
+
+## Total Cases per 100k Population by State    
+
+This is a State-wise analysis of COVID statistics intended to highlight any correlations between political leadership and disease outcomes.   
 
 ```{r,  fig.align='center', fig.width = 6, fig.height = 4}
 
@@ -769,6 +817,9 @@ ggplot(state_list, aes(x = fct_reorder(ST, desc(per_capita)), y = per_capita, fi
 
 
 ```
+
+
+
 ## Total Deaths by State Per 100k Population    
 
 
@@ -816,9 +867,9 @@ ggplot(state_list, aes(x = fct_reorder(ST, desc(per_capita)), y = per_capita, fi
 ```
 
 
-## Deaths by State Since 2020-06-01 Per 100k Population    
+## Deaths by State *since 2020-06-01* Per 100k Population    
 
-Many State Governors relaxed as early as Mid May the stay at home orders implemented to protect the public from COVID-19. Subequently cases surged, resulting in what were largely preventable deaths.   
+Many State Governors relaxed staty-at-home orders as early as Mid May. Subequently, cases surged, resulting in a spike in deaths.   
 
 
 ```{r,  fig.align='center', fig.width = 6, fig.height = 4}
@@ -881,6 +932,8 @@ ggplot(state_list, aes(x = fct_reorder(ST, desc(per_capita)), y = per_capita, fi
 
 
 ## Effective Reproduction Rate $R_e$     
+
+The effective Reproduction Rate $R_e$ shows clear differences between Replublican and Demoncratic-led States. 
 
 
 ```{r, fig.height=4, fig.width=6, fig.align="center"}
@@ -1068,7 +1121,7 @@ p_per_capita
 While the State-Level Data Tell as remarkable story, it is also interesting to look at County-level data 
 
 
-```{r, warning = F, message = F, fig.align='center', fig.height =5, fig.width = 9, echo = F, eval = T}
+```{r, warning = F, message = F, fig.align='center', fig.height =5, fig.width = 9, echo = F, eval = F}
 
 ## per capita cases
 
