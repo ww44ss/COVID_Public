@@ -242,14 +242,19 @@ for(fips_x in fips_list) {
     mutate(n = row_number()) %>%
     yo
     
- 
+ fips_data <- fips_data %>%
+    mutate(cases = ifelse(cases <0, 0, cases))%>%
+    mutate(deaths = ifelse(deaths < 0, 0, deaths)) %>%
+    yo
+  
   ## ensure there are at least 10 data points for a county.
-  if(nrow(fips_data) > 10) {
+  if(nrow(fips_data) > 5) {
   
   fips_data<-fips_data %>% 
-    mutate(log_cases = log2(cases+1)) %>% 
-    mutate(log_deaths = log2(deaths+1)) %>% 
+    mutate(log_cases = log2(cases+.01)) %>% 
+    mutate(log_deaths = log2(deaths+.01)) %>% 
     yo
+  
 
   # spline_model_cases <- smooth.spline(x = fips_data$n, y = fips_data$log_cases, spar = .65, keep.data = F)
   # spline_model_deaths <- smooth.spline(x = fips_data$n, y = fips_data$log_deaths, spar = .75, keep.data = F)
@@ -470,15 +475,40 @@ These trend charts show the national disease statistics. The raw data are shown.
 d_p <- final_plot_data %>%
   ungroup()%>%
   group_by(date) %>%
-  summarize(total_cases = sum(orig_cases), total_active = sum(rolling_baseline_14), total_deaths = sum(deaths), daily_cases = sum(daily_cases), total_daily = sum(daily_cases), daily_deaths = sum(daily_deaths)) %>%
+  summarize(total_cases = sum(orig_cases), total_active = sum(rolling_baseline_14), total_deaths = sum(deaths), daily_cases = sum(daily_cases), total_daily = sum(daily_cases), daily_deaths = sum(daily_deaths), population = sum(population)) %>%
   mutate(r_e = daily_cases*12/(total_active+.1)) %>%
   mutate(daily_deaths2 = total_deaths - lag(total_deaths)) %>%
    mutate(daily_cases2 = total_cases - lag(total_cases)) %>%
   mutate(mortality = 100*total_deaths/(total_cases+.1), daily_mortality = 100*daily_deaths/(total_daily+.1)) %>%
   ungroup() %>%
+  mutate(population = max(population)) %>%
   yo
 
 
+daily_deaths_trend <- d_p %>%
+  arrange(desc(date)) %>%
+  slice(1:7) %>%
+  select(daily_deaths, daily_deaths2) %>%
+  summarize(fit = mean(daily_deaths), actual = mean(daily_deaths2)) %>%
+  rowwise()%>%
+  summarize(daily_deaths = mean(c(fit, actual))) %>%
+  as.numeric() %>%
+  round(0)%>%
+  yo
+
+
+daily_cases_trend <- d_p %>%
+  arrange(desc(date)) %>%
+  slice(1:7) %>%
+  select(daily_cases, daily_cases2) %>%
+  summarize(fit = mean(daily_cases), actual = mean(daily_cases2)) %>%
+  rowwise()%>%
+  summarize(daily_deaths = mean(c(fit, actual))) %>%
+  as.numeric() %>%
+  round(0)%>%
+  yo
+
+us_pop <- max(d_p$population)
 
 
 p_total_cases <- ggplot(data = d_p, aes(x = date, y = total_cases) ) + 
@@ -500,6 +530,16 @@ p1_daily <- ggplot(data = d_p, aes(x = date) ) +
              color="steelblue4") +
   theme_bw()
 
+
+daily_per_capita <- ggplot(data = d_p, aes(x = date) ) + 
+ geom_line(aes(x = date, y = 100000.*daily_cases2/us_pop), color = "#891815", size = 0.8, alpha = 0.8)+
+  labs(title = "Daily US Cases", subtitle = today(), y = "cases")+ 
+   annotate(geom="text", x=(max(d_p$date) - days(30)), 
+             y=(0.85*(100000/us_pop)*d_p[d_p$date == max(d_p$date),]$daily_cases[1]), 
+              label=str_c((100000*daily_cases_trend/us_pop)%>%round(1), " cases per 100k    "), size = 3.0,
+              color="steelblue4") +
+  theme_bw()
+
 p1_daily_deaths <- ggplot(data = d_p, aes(x = date) ) + 
  geom_col(aes(y = daily_deaths2), color = "grey80", width = 0.7, alpha = 0.5)+
   geom_line(aes(y = daily_deaths), size = 1, color = "#151589AA")+
@@ -508,6 +548,37 @@ p1_daily_deaths <- ggplot(data = d_p, aes(x = date) ) +
              y=(0.05*max(d_p$daily_deaths)), 
              label=str_c("trend ", (d_p[d_p$date == max(d_p$date),]$daily_deaths[1])%>%round(0), " daily deaths    "), size = 3.0,
              color="steelblue4") +
+  theme_bw()
+
+
+daily_deaths_per_capita <- ggplot(data = d_p, aes(x = date) ) + 
+  geom_hline(yintercept =(100000*daily_deaths_trend/us_pop), color = "151591", size = 0.5 ) +
+ geom_col(aes(y = 100000.*daily_deaths2/us_pop), color = "grey80", width = 0.7, alpha = 0.5)+
+  geom_line(aes(y = 100000*daily_deaths/us_pop), size = 1.1, color = "#151589AA")+
+  labs(title = "Daily US Deaths per 100k Population", subtitle = str_c("Current Estimated US trend is ", daily_deaths_trend, " deaths per day"), y = "deaths per 100k")+ 
+  annotate(geom="text", x=(min(d_p$date) + days(5)), 
+             y=((100000*daily_deaths_trend/us_pop)+.03), 
+             label=str_c((100000*daily_deaths_trend/us_pop)%>%round(3),  " deaths/100k"), size = 3.0,
+             color="steelblue4", hjust = 0) +
+  annotate(geom="text", x=(max(d_p$date) - days(10)), 
+             y=((100000/us_pop)*0.045*max(d_p$daily_deaths)), 
+             label=str_c("@WinstonOnData ",today()), size = 3.0,
+             color="steelblue4", hjust = 1) +
+  theme_bw()
+
+daily_cases_per_capita <- ggplot(data = d_p, aes(x = date) ) +
+  geom_hline(yintercept =(100000*daily_cases_trend/us_pop), color = "151591", size = 0.5 ) +
+ geom_col(aes(y = 100000.*daily_cases2/us_pop), color = "grey80", width = 0.7, alpha = 0.5)+
+  geom_line(aes(y = 100000*daily_cases/us_pop), size = 1.1, color = "#891515AA")+
+  labs(title = "Daily US Cases per 100k Population", subtitle = str_c("Current Estimated US trend is ", daily_cases_trend, " cases per day"), y = "cases per 100k")+ 
+  annotate(geom="text", x=(min(d_p$date) + days(5)), 
+             y=((100000*daily_cases_trend/us_pop)+1), 
+             label=str_c((100000*daily_cases_trend/us_pop)%>%round(2),  " deaths/100k"), size = 3.0,
+             color="steelblue4", hjust = 0) +
+  annotate(geom="text", x=(max(d_p$date) - days(10)), 
+             y=((100000/us_pop)*0.045*max(d_p$daily_cases)), 
+             label=str_c("@WinstonOnData ",today()), size = 3.0,
+             color="steelblue4", hjust = 1) +
   theme_bw()
 
 
@@ -571,10 +642,11 @@ p_r <-
 
 
 
-grid.arrange(p_total_cases, p_dailycases, p_total_deaths, p1_daily_deaths,  nrow = 2)
+grid.arrange(p_total_cases, daily_cases_per_capita, p_total_deaths, daily_deaths_per_capita,  nrow = 2)
 
 
 ```
+    
     
 
 ## Mortality and $R_e$     
@@ -899,27 +971,8 @@ While the State-Level Data Tell as remarkable story, it is also interesting to l
     select(state, ST, county, per_capita, date) %>%
     yo
   
-  data_Jun15 <- final_plot_data %>%
-    filter(!(county == "New York City")) %>%
-    bind_rows(Kings_data, Queens_data, Bronx_data, NY_data, Richmond_data) %>%
-    filter(date == (ymd("2020-06-15")))%>% 
-    mutate(per_capita = 100000*cases/population) %>%
-    mutate(per_capita = ifelse(per_capita > 4000, 4000, per_capita)) %>%
-    mutate(per_capita = ifelse(per_capita < 200, 200, per_capita)) %>%
-    select(state, ST, county, per_capita, date) %>%
-    yo
-  
-  data_May01 <- final_plot_data %>%
-    filter(!(county == "New York City")) %>%
-    bind_rows(Kings_data, Queens_data, Bronx_data, NY_data, Richmond_data) %>%
-    filter(date == (ymd("2020-05-01")))%>%  
-    mutate(per_capita = 100000*cases/population) %>%
-    mutate(per_capita = ifelse(per_capita > 4000, 4000, per_capita)) %>%
-    mutate(per_capita = ifelse(per_capita < 200, 200, per_capita)) %>%
-    select(state, ST, county, per_capita, date) %>%
-    yo
-  
-  
+
+
   counties_max <- counties %>%
     left_join(data_max, by = c("county", "state", "ST")) %>%
     mutate(date = ifelse(!is.na(date), date, max_date)) %>%
@@ -927,24 +980,9 @@ While the State-Level Data Tell as remarkable story, it is also interesting to l
     mutate(per_capita = ifelse(!(is.na(per_capita)), per_capita, 200)) %>%
     yo
   
-  counties_May01 <- counties %>%
-    left_join(data_May01, by = c("county", "state", "ST")) %>%
-    mutate(date = ifelse(!is.na(date), date, ymd("2020-05-01"))) %>%
-    mutate(date = as_date(date)) %>%
-    mutate(per_capita = ifelse(!(is.na(per_capita)), per_capita, 200)) %>%
-    yo
-  
-  counties_Jun15 <- counties %>%
-    left_join(data_Jun15, by = c("county", "state", "ST")) %>%
-    mutate(date = ifelse(!is.na(date), date,  ymd("2020-06-15"))) %>%
-    mutate(date = as_date(date)) %>%
-    mutate(per_capita = ifelse(!(is.na(per_capita)), per_capita, 200)) %>%
-    yo
   
   
   counties <- counties_max %>%
-    #bind_rows(counties_Jun15) %>%
-    #bind_rows(counties_May01) %>%
      mutate(date = as_date(date)) %>%
     yo
 
@@ -976,7 +1014,7 @@ While the State-Level Data Tell as remarkable story, it is also interesting to l
 ```
 
 
-```{r, warning = F, message = F, fig.align='center', fig.height =5, fig.width = 9, echo = F, eval = F}
+```{r, warning = F, message = F, fig.align='center', fig.height =5, fig.width = 9, echo = F, eval = T}
 
 ## per capita cases
 
@@ -995,13 +1033,7 @@ While the State-Level Data Tell as remarkable story, it is also interesting to l
  state_abb <- bind_cols(state = state.name, ST = state.abb)
   
   
-  # plot_colors <- c(brewer.pal(n = 11, name = "RdYlGn")[1:9], "#3392B2", "#5362C2")
-  # plot_colors <- plot_colors[-(6:7)]
-  # plot_colors <- c("#950005", plot_colors)
-  
-  plot_colors <- rev(c(brewer.pal(n = 5, name = "RdYlGn"), "#3322B2"))
-  
-  plot_colors <- c("grey99","firebrick1", "firebrick4")
+  plot_colors <- c("grey99","orangered1", "orangered4")
   
   
   states <- st_as_sf(map("state", plot = FALSE, fill = TRUE)) %>%
@@ -1058,7 +1090,7 @@ While the State-Level Data Tell as remarkable story, it is also interesting to l
   
     #per_capita_cases_plot <- 
   ggplot(crs = st_crs(102003)) + 
-    geom_sf(data = counties , aes(geometry = geom, fill = per_capita), color = "#DDDDCC77", size = 0.2 ) + 
+    geom_sf(data = counties , aes(geometry = geom, fill = per_capita), color = "#549faa33", size = 0.2) + 
     coord_sf(xlim = c(as.numeric(bbox[1]), as.numeric(bbox[3])), ylim = c(as.numeric(bbox[2]), as.numeric(bbox[4])), expand = FALSE) + 
     scale_fill_gradientn(colors=plot_colors, name = "cases/100k") +
     theme_bw() +
@@ -1071,11 +1103,11 @@ While the State-Level Data Tell as remarkable story, it is also interesting to l
           panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(),
           strip.text = element_text(color = "#154555", size = 12, face = "bold")) +
-    labs(title = str_c('DAILY COVID-19 CASES PER CAPITA'),
-         subtitle=str_c("NYTimes COVID19 Database: data through ", date_display), "color = cases/100k") +
+    labs(title = str_c('DAILY COVID-19 CASES PER 100K POPULATION'),
+         subtitle=str_c("Source NYTimes COVID19 Database")) +
      annotate(geom="text", x=-70,
              y=25,
-             label=str_c("ww44ss - ", today() ), size = 2.5,
+             label=str_c("@WinstonOnData - ", today() ), size = 2.5,
              color="Grey30") 
     
 
@@ -2887,9 +2919,11 @@ Today is `r today()`.
 `r as.numeric (today()-ymd("2020-08-03"))` days ago: added county level "baseline control" and $R_e$ maps.    
 `r as.numeric (today()-ymd("2020-08-07"))` days ago: fixed normalization error on total disease stats plot.  
 `r as.numeric (today()-ymd("2020-08-14"))` days ago: Corrected some text matching in generating county level plots of $R_e$.  
-`r as.numeric (today()-ymd("2020-08-20"))` days ago: adapted knot spacing for spline.   
-`r as.numeric (today()-ymd("2020-09-03"))` days ago:using separate knot spacing for spline fits of deaths and cases.  
-`r as.numeric (today()-ymd("2020-09-05"))` days ago: MAJOR UPDATE. Moved things around. Added per capita severity map. 
+`r as.numeric (today()-ymd("2020-08-20"))` days ago: adapted knot spacing for spline.    
+`r as.numeric (today()-ymd("2020-09-03"))` days ago:using separate knot spacing for spline fits of deaths and cases.   
+`r as.numeric (today()-ymd("2020-09-05"))` days ago: MAJOR UPDATE. Moved things around. Added per capita severity map.    
+`r as.numeric (today()-ymd("2020-10-03"))` days ago: improved national trends with per capita analysis.    
+`r as.numeric (today()-ymd("2020-10-04"))` days ago: added county level per capita daily cases map. testing new color scheme.   
 
 
 

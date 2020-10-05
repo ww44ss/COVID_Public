@@ -243,12 +243,17 @@ for(fips_x in fips_list) {
     yo
     
  
+  fips_data <- fips_data %>%
+    mutate(cases = ifelse(cases <0, 0, cases))%>%
+    mutate(deaths = ifelse(deaths < 0, 0, deaths)) %>%
+    yo
+  
   ## ensure there are at least 10 data points for a county.
-  if(nrow(fips_data) > 10) {
+  if(nrow(fips_data) > 5) {
   
   fips_data<-fips_data %>% 
-    mutate(log_cases = log2(cases+1)) %>% 
-    mutate(log_deaths = log2(deaths+1)) %>% 
+    mutate(log_cases = log2(cases+.01)) %>% 
+    mutate(log_deaths = log2(deaths+.01)) %>% 
     yo
 
   # spline_model_cases <- smooth.spline(x = fips_data$n, y = fips_data$log_cases, spar = .65, keep.data = F)
@@ -257,8 +262,8 @@ for(fips_x in fips_list) {
    nmax = max(fips_data$n)
    
    # set a degrees of freedom
-   df_c = as.integer(nmax/5 + 2)
-   df_d = as.integer(nmax/6.5 + 2)
+   df_c = as.integer(nmax/6.6 + 2)
+   df_d = as.integer(nmax/7.5 + 2)
   
   spline_model_cases <- smooth.spline(x = fips_data$n, y = fips_data$log_cases, keep.data = F, df=df_c)
   spline_model_deaths <- smooth.spline(x = fips_data$n, y = fips_data$log_deaths, keep.data = F, df=df_d)
@@ -280,8 +285,8 @@ for(fips_x in fips_list) {
   
   ## compute growth rates
   backward_prediction2 <- backward_prediction %>%
-    mutate(smoothed_cases = 2^log_predicted_cases - 1) %>%
-    mutate(smoothed_deaths = 2^(log_predicted_deaths)-1) %>%
+    mutate(smoothed_cases = 2^log_predicted_cases) %>%
+    mutate(smoothed_deaths = 2^(log_predicted_deaths)) %>%
     
     mutate(daily_cases = smoothed_cases - lag(smoothed_cases)) %>%
     mutate(daily_deaths = smoothed_deaths - lag(smoothed_deaths)) %>%
@@ -1209,6 +1214,32 @@ scale_color_gradient(low = "blue", high = "red", name = "% Trump Vote") +
 ```
 
 
+```{r, fig.width = 6, fig.height = 4}
+
+data_x <- final_plot_data %>% 
+  filter(date == max(date)) %>%
+  mutate(party_sku = ((votes_gop-votes_dem)/(votes_gop + votes_dem))) %>%
+  mutate(hilary_fraction = ((votes_dem)/(votes_gop + votes_dem))) %>%
+  mutate(winner = ifelse(hilary_fraction >=.5, "Clinton", "Trump")) %>%
+  yo
+
+
+ggplot(data = data_x, aes(x = votes_dem+votes_gop, y = 100000*(daily_deaths+.1)/population, color = winner, size = population))+
+scale_color_manual(values = c("blue", "red"), name = "Candidate") +  
+  geom_point(alpha = 0.3) + scale_y_log10() + scale_x_log10() +
+  geom_smooth(method = "gam", formula = y ~ log10(x), linetype="dashed",
+             color="darkred", fill="blue") + 
+  labs(title = str_c("2016 Election Vote vs. Daily COVID deaths on ", data_x$date[1]), subtitle = "Voter and COVID data per US County", y = str_c("daily deaths per 100k population"), x = "% Vote for Trump") + 
+  theme_bw() + 
+  theme(legend.position = "none")+
+     annotate(geom="text", x=80, 
+             y=.0075, 
+             label=str_c("@WinstonOnData - ", today() ), size = 2.5,
+             color="Grey30")
+  
+
+```
+
 ```{r, fig.width = 6, fig.height = 4, eval = F}
 
 data_x <- final_plot_data %>% 
@@ -1233,6 +1264,32 @@ scale_color_gradient(low = "blue", high = "red", name = "% Trump Vote") +
 ```
 
 
+```{r, fig.width = 6, fig.height = 4, eval = T}
+
+data_x <- final_plot_data %>% 
+  ungroup()%>%
+  mutate(party_sku = ((votes_gop-votes_dem)/(votes_gop + votes_dem))) %>%
+  mutate(hilary_fraction = ((votes_dem)/(votes_gop + votes_dem))) %>%
+  mutate(winner = ifelse(hilary_fraction >=.5, "Clinton", "Trump")) %>%
+  group_by(date, winner) %>%
+  summarize(daily_cases = sum(daily_cases), cases = sum(cases), deaths = sum(deaths), daily_deaths = sum(daily_deaths), population = sum(population)) %>%
+  
+  yo
+
+
+ggplot(data = data_x, aes(x = date, y = 100000*(daily_deaths+.1)/population, color = winner))+
+scale_color_manual(values = c("blue", "red"), name = "Candidate") + 
+  geom_line(alpha = 0.3, size = 2) +
+  labs(title = str_c("2016 Election Vote vs. Daily COVID deaths on ", data_x$date[1]), subtitle = "Voter and COVID data per US County", y = str_c("daily deaths per 100k population"), x = "date") + 
+  theme_bw() + 
+  theme(legend.position = "none")+
+     annotate(geom="text", x=ymd("2020-09-01"), 
+             y=.0075, 
+             label=str_c("@WinstonOnData - ", today() ), size = 2.5,
+             color="Grey30")
+  
+
+```
 
 
 ### County Level Data    
