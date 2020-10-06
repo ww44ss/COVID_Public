@@ -82,9 +82,12 @@ This analysis seeks to fill partially that gap. It includes:
 
 <br/>
 
-This computed document is constantly evolving, so please "refresh" for the latest updates.
+This computed document is part of a constantly evolving analysis, so please "refresh" for the latest updates.
 If you have suggestions or comments please reach out on twitter [\@WinstonOnData](https://twitter.com/WinstonOnData) or facebook.       
-<br/>
+<br/>  
+You are welcome to visit my code repository on [Github](https://github.com/ww44ss/COVID_Public).     
+You are also welcome to visit my analysis on the [Politics of COVID](https://rpubs.com/ww44ss/Politics_of_COVID)      
+Finally, you can alway check my [Rpubs](https://rpubs.com/ww44ss) for new documents and updates.     
 
 
 
@@ -532,7 +535,7 @@ p1_daily <- ggplot(data = d_p, aes(x = date) ) +
 
 
 daily_per_capita <- ggplot(data = d_p, aes(x = date) ) + 
- geom_line(aes(x = date, y = 100000.*daily_cases2/us_pop), color = "#891815", size = 0.8, alpha = 0.8)+
+ geom_line(aes(x = date, y = 100000.*daily_cases2/us_pop), color = "#B91815", size = 0.8, alpha = 0.8)+
   labs(title = "Daily US Cases", subtitle = today(), y = "cases")+ 
    annotate(geom="text", x=(max(d_p$date) - days(30)), 
              y=(0.85*(100000/us_pop)*d_p[d_p$date == max(d_p$date),]$daily_cases[1]), 
@@ -552,12 +555,12 @@ p1_daily_deaths <- ggplot(data = d_p, aes(x = date) ) +
 
 
 daily_deaths_per_capita <- ggplot(data = d_p, aes(x = date) ) + 
-  geom_hline(yintercept =(100000*daily_deaths_trend/us_pop), color = "151591", size = 0.5 ) +
+  geom_hline(yintercept =(100000*daily_deaths_trend/us_pop), color = "#A51541", size = 0.5 ) +
  geom_col(aes(y = 100000.*daily_deaths2/us_pop), color = "grey80", width = 0.7, alpha = 0.5)+
-  geom_line(aes(y = 100000*daily_deaths/us_pop), size = 1.1, color = "#151589AA")+
-  labs(title = "Daily US Deaths per 100k Population", subtitle = str_c("Current Estimated US trend is ", daily_deaths_trend, " deaths per day"), y = "deaths per 100k")+ 
+  geom_line(aes(y = 100000*daily_deaths/us_pop), size = 1.1, color = "#891599AA")+
+  labs(title = "Daily US Deaths per 100k Population", subtitle = str_c("US trend is ", daily_deaths_trend, " deaths per day"), y = "deaths per 100k")+ 
   annotate(geom="text", x=(min(d_p$date) + days(5)), 
-             y=((100000*daily_deaths_trend/us_pop)+.03), 
+             y=((100000*daily_deaths_trend/us_pop)+.04), 
              label=str_c((100000*daily_deaths_trend/us_pop)%>%round(3),  " deaths/100k"), size = 3.0,
              color="steelblue4", hjust = 0) +
   annotate(geom="text", x=(max(d_p$date) - days(10)), 
@@ -567,13 +570,13 @@ daily_deaths_per_capita <- ggplot(data = d_p, aes(x = date) ) +
   theme_bw()
 
 daily_cases_per_capita <- ggplot(data = d_p, aes(x = date) ) +
-  geom_hline(yintercept =(100000*daily_cases_trend/us_pop), color = "151591", size = 0.5 ) +
+  geom_hline(yintercept =(100000*daily_cases_trend/us_pop), color = "#A51541", size = 0.5 ) +
  geom_col(aes(y = 100000.*daily_cases2/us_pop), color = "grey80", width = 0.7, alpha = 0.5)+
-  geom_line(aes(y = 100000*daily_cases/us_pop), size = 1.1, color = "#891515AA")+
-  labs(title = "Daily US Cases per 100k Population", subtitle = str_c("Current Estimated US trend is ", daily_cases_trend, " cases per day"), y = "cases per 100k")+ 
+  geom_line(aes(y = 100000*daily_cases/us_pop), size = 1.1, color = "#151599AA")+
+  labs(title = "Daily US Cases per 100k Population", subtitle = str_c("US trend is ", daily_cases_trend, " cases per day"), y = "cases per 100k")+ 
   annotate(geom="text", x=(min(d_p$date) + days(5)), 
-             y=((100000*daily_cases_trend/us_pop)+1), 
-             label=str_c((100000*daily_cases_trend/us_pop)%>%round(2),  " deaths/100k"), size = 3.0,
+             y=((100000*daily_cases_trend/us_pop)+1.1), 
+             label=str_c((100000*daily_cases_trend/us_pop)%>%round(2),  " cases/100k"), size = 3.0,
              color="steelblue4", hjust = 0) +
   annotate(geom="text", x=(max(d_p$date) - days(10)), 
              y=((100000/us_pop)*0.045*max(d_p$daily_cases)), 
@@ -1224,7 +1227,6 @@ While the State-Level Data Tell as remarkable story, it is also interesting to l
 
 
  
-### County Level Data    
 
 
 
@@ -1923,7 +1925,7 @@ p_re <- ggplot(d_p,
 
 
 
-grid.arrange(p_total_cases, p_daily_cases, county_hist, p_re, p_mortality, p_daily_deaths, nrow = 3)
+grid.arrange(p_total_cases, p_daily_cases_per_capita, county_hist, p_re, p_mortality, p_daily_deaths, nrow = 3)
 
 
 
@@ -2105,6 +2107,13 @@ severe_county_table2(final_plot_data, state_y)
 
 </center> 
 
+
+```{r}
+
+county_plot(final_plot_data, county_x = "Marin", state_x = "CA")
+
+```
+
 ```{r}
 
 county_plot(final_plot_data, county_x = "Alameda", state_x = "CA")
@@ -2123,28 +2132,24 @@ county_plot(final_plot_data, county_x = "San Francisco", state_x = "CA")
 
 ```
 
-```{r}
 
-county_plot(final_plot_data, county_x = "Marin", state_x = "CA")
 
-```
+
 
 ```{r}
 
-county_plot(final_plot_data, county_x = "Orange", state_x = "CA")
+county_plot(final_plot_data, county_x = "Santa Barbara", state_x = "CA")
 
 ```
 
-```{r}
 
-county_plot(final_plot_data, county_x = "San Diego", state_x = "CA")
-
-```
 
 
 ```{r}
 
 county_plot(final_plot_data, county_x = "Los Angeles", state_x = "CA")
+county_plot(final_plot_data, county_x = "Orange", state_x = "CA")
+county_plot(final_plot_data, county_x = "San Diego", state_x = "CA")
 
 ```
 
