@@ -474,6 +474,43 @@ final_plot_data <- final_plot_data %>%
 ```
 
 
+```{r}
+
+house_data_kaggle <- "1976_2018_house.csv"
+
+house_results <- read_csv(str_c(getwd(),"/", house_data_kaggle), col_types = cols(
+  year = col_double(),
+  state = col_character(),
+  state_po = col_character(),
+  state_fips = col_double(),
+  state_cen = col_double(),
+  state_ic = col_double(),
+  office = col_character(),
+  district = col_double(),
+  stage = col_character(),
+  runoff = col_logical(),
+  special = col_logical(),
+  candidate = col_character(),
+  party = col_character(),
+  writein = col_logical(),
+  mode = col_character(),
+  candidatevotes = col_double(),
+  totalvotes = col_double(),
+  unofficial = col_logical(),
+  version = col_double()
+)) %>%
+  filter(year == 2018) %>%
+  select(state = state, ST = state_po, district = district, party, candidate_votes = candidatevotes, total_votes = totalvotes) %>%
+  filter(!is.na(party)) %>%
+  pivot_wider(names_from = party, values_from = candidate_votes) %>%
+  yo
+
+
+  
+
+
+
+```
 
 
 
@@ -1489,6 +1526,11 @@ plot_colors <- plot_colors[-c(1,(6:7))]
 ```
 
 
+# House Of Representatives and Local Politics
+
+
+
+
 <br/>
 <center>
 
@@ -1521,6 +1563,8 @@ Today is `r today()`.
 `r as.numeric(today()-ymd("2020-09-21"))` days ago: Branched from Regional COVID ANALYSIS. 
 `r as.numeric(today()-ymd("2020-09-21"))` days ago: Branched from Regional COVID ANALYSIS.
 `r as.numeric(today()-ymd("2020-09-29"))` days ago: Added regression at county level.
+`r as.numeric(today()-ymd("2020-10-11"))` days ago: Added density histograms of vote versus recent death rate per 100k.
+`r as.numeric(today()-ymd("2020-10-12"))` days ago: Added link to this data on [recent House elections](https://www.kaggle.com/tunguz/us-elections-dataset?select=1976-2018-house2.csv)
 
 
 
