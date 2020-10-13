@@ -252,8 +252,8 @@ for(fips_x in fips_list) {
   if(nrow(fips_data) > 5) {
   
   fips_data<-fips_data %>% 
-    mutate(log_cases = log2(cases+.01)) %>% 
-    mutate(log_deaths = log2(deaths+.01)) %>% 
+    mutate(log_cases = log2(cases+1)) %>% 
+    mutate(log_deaths = log2(deaths+1)) %>% 
     yo
 
   # spline_model_cases <- smooth.spline(x = fips_data$n, y = fips_data$log_cases, spar = .65, keep.data = F)
@@ -285,15 +285,15 @@ for(fips_x in fips_list) {
   
   ## compute growth rates
   backward_prediction2 <- backward_prediction %>%
-    mutate(smoothed_cases = 2^log_predicted_cases) %>%
-    mutate(smoothed_deaths = 2^(log_predicted_deaths)) %>%
+    mutate(smoothed_cases = 2^log_predicted_cases - 1) %>%
+    mutate(smoothed_deaths = 2^(log_predicted_deaths) - 1) %>%
     
     mutate(daily_cases = smoothed_cases - lag(smoothed_cases)) %>%
     mutate(daily_deaths = smoothed_deaths - lag(smoothed_deaths)) %>%
-    mutate(daily_cases = ifelse(daily_cases<0.001, 0.001, daily_cases)) %>%
-    mutate(daily_cases = ifelse(is.na(daily_cases), 0.01, daily_cases)) %>%
-    mutate(daily_deaths = ifelse(daily_deaths<0.001, 0.001, daily_deaths)) %>%
-    mutate(daily_deaths = ifelse(is.na(daily_deaths), 0.01, daily_deaths)) %>%
+    mutate(daily_cases = ifelse(daily_cases<0.25, 0, daily_cases)) %>%
+    mutate(daily_cases = ifelse(is.na(daily_cases), 0.0, daily_cases)) %>%
+    mutate(daily_deaths = ifelse(daily_deaths<0.25, 0, daily_deaths)) %>%
+    mutate(daily_deaths = ifelse(is.na(daily_deaths), 0.0, daily_deaths)) %>%
     
     mutate(daily_cases = daily_cases %>% round(1)) %>%
     mutate(daily_deaths = daily_deaths %>% round(1)) %>%
@@ -616,7 +616,7 @@ p_dailycases <- ggplot(d_p,
 
 p_r <- 
   ggplot(d_p %>% filter(date >= ymd("2020-03-21")),
-                       aes(x = date, y = r_e, color = party)) + geom_line(size = 1.1, alpha = 0.8) + geom_smooth(span = .3)+
+                       aes(x = date, y = r_e, color = party)) + geom_line(size = 0.3, alpha = 0.4) + geom_smooth(span = .3, se=FALSE, size = 1.7)+
   labs(title = "Effective Reproduction Rate", subtitle = "By State Governor's party affiliation", y = "R_e")+
   scale_color_manual(values = c("blue", "red"))+
   scale_y_log10()+
@@ -734,8 +734,15 @@ grid.arrange(p_total_cases, p_dailycases, p_total_deaths, p1_daily_deaths,  nrow
 
 ```  
 
+
+# State Analysis
+
 ## Trend Chart of Per Capita Deaths   
 
+
+Grouped by Governor Party Affiliation. Hypothesis is that political leadership plays a large role in influencing COVID outcomes.   
+
+We can see distinct differences between the populations, with a few exceptions.   
 
 ```{r,  fig.align='center', fig.width = 8, fig.height = 6}
 
@@ -772,12 +779,10 @@ ggplot(data_x, aes(x = date, y = deaths_per_100k, group = ST, color = party)) +
 ```
 
 
-
-# State-Level Bar Charts    
-
 ## Total Cases per 100k Population by State    
 
-This is a State-wise analysis of COVID statistics intended to highlight any correlations between political leadership and disease outcomes.   
+How about total cases?  Of the Top 12 states, only one is Demoncratically led.   
+
 
 ```{r,  fig.align='center', fig.width = 6, fig.height = 4}
 
@@ -812,7 +817,12 @@ ggplot(state_list, aes(x = fct_reorder(ST, desc(per_capita)), y = per_capita, fi
         legend.text = element_text(color = "grey10", size = 10),
         legend.position = c(.7, .75),
         legend.key.size = unit(.2, "cm"),
-  legend.key.width = unit(0.2,"cm")) 
+  legend.key.width = unit(0.2,"cm")) +
+     annotate(geom="text", x=40, 
+             y=-95, 
+             label=str_c("@WinstonOnData ", today() ), size = 2.5,
+             color="Grey30")
+
 
 
 
@@ -827,6 +837,8 @@ ggplot(state_list, aes(x = fct_reorder(ST, desc(per_capita)), y = per_capita, fi
 
 ## Total Deaths by State Per 100k Population    
 
+Deaths by state show a different trend. The High "Death per capita" states are dominated by the early outbreak last March and April.   Of the Top 12, it's an even split.   
+  
 
 ```{r,  fig.align='center', fig.width = 6, fig.height = 4}
 
@@ -860,7 +872,11 @@ ggplot(state_list, aes(x = fct_reorder(ST, desc(per_capita)), y = per_capita, fi
         legend.text = element_text(color = "grey10", size = 10),
         legend.position = c(.7, .75),
         legend.key.size = unit(.2, "cm"),
-  legend.key.width = unit(0.2,"cm")) 
+  legend.key.width = unit(0.2,"cm")) +
+     annotate(geom="text", x=40, 
+             y=-6, 
+             label=str_c("@WinstonOnData ", today() ), size = 2.5,
+             color="Grey30")
 
 
 
@@ -872,9 +888,9 @@ ggplot(state_list, aes(x = fct_reorder(ST, desc(per_capita)), y = per_capita, fi
 ```
 
 
-## Deaths by State *since 2020-07-01* Per 100k Population    
+## Deaths by State since *2020-07-04* Per 100k Population    
 
-Many State Governors relaxed staty-at-home orders as early as Mid May. Subequently, cases surged, resulting in a spike in deaths.   
+Many State Governors relaxed staty-at-home orders as early as Mid May. Subequently, cases surged, resulting in a spike in deaths. Again, 10 of the Top 12 are Republican-led.  
 
 
 ```{r,  fig.align='center', fig.width = 6, fig.height = 4}
@@ -891,7 +907,7 @@ data_x <- final_plot_data %>%
   yo
 
 
-date_since <- "2020-07-01"
+date_since <- "2020-07-04"
 
 data_y <- final_plot_data %>%
   select(-lat, -lon)%>%
@@ -929,7 +945,12 @@ ggplot(state_list, aes(x = fct_reorder(ST, desc(per_capita)), y = per_capita, fi
         legend.text = element_text(color = "grey10", size = 10),
         legend.position = c(.7, .75),
         legend.key.size = unit(.2, "cm"),
-  legend.key.width = unit(0.2,"cm")) 
+  legend.key.width = unit(0.2,"cm")) +
+     annotate(geom="text", x=40, 
+             y=-2, 
+             label=str_c("@WinstonOnData ", today() ), size = 2.5,
+             color="Grey30")
+
 
 
 
@@ -1022,7 +1043,7 @@ bbox <- make_bbox(lat = lat, lon = lon, data = final_plot_data, f = .1)
   
 t_cases_per_capita <-    
   ggplot() + 
-    geom_sf(data = data_x, aes(geometry = geom, fill = 100000* cases/population), color = "white", size = 0.6, alpha = 0.85) + 
+    geom_sf(data = data_x, aes(geometry = geom, fill = 100000* cases/population), color = "grey80", size = 0.6, alpha = 0.85) + 
     coord_sf(xlim = c(as.numeric(bbox[1]), as.numeric(bbox[3])), ylim = c(as.numeric(bbox[2]), as.numeric(bbox[4])), expand = FALSE) +
     scale_fill_gradientn(colors =plot_colors, name = TeX("Cases/100k"), limits = c(0, 3800)) + 
     theme_bw()+
@@ -1038,9 +1059,9 @@ t_cases_per_capita <-
     #labs(title = str_c("Reproduction Rate," TeX("$R_e$")),
       labs(title =  TeX("What Fraction People Have Been Sick?"),
          subtitle = TeX("Total Cases by State Per 100k Population")) +
-     annotate(geom="text", x=-70, 
+     annotate(geom="text", x=-75, 
              y=25, 
-             label=str_c("ww44ss - ", today() ), size = 2.5,
+             label=str_c("@WinstonOnData - ", today() ), size = 2.5,
              color="Grey30") + 
   facet_grid(.~party)
   
@@ -1049,7 +1070,7 @@ t_cases_per_capita <-
 
 p_per_capita <-    
   ggplot() + 
-    geom_sf(data = data_x, aes(geometry = geom, fill = daily_cases_per_capita), color = "white", size = 0.6, alpha = 0.85) + 
+    geom_sf(data = data_x, aes(geometry = geom, fill = daily_cases_per_capita), color = "grey80", size = 0.6, alpha = 0.85) + 
     coord_sf(xlim = c(as.numeric(bbox[1]), as.numeric(bbox[3])), ylim = c(as.numeric(bbox[2]), as.numeric(bbox[4])), expand = FALSE) +
     scale_fill_gradientn(colors =plot_colors, name = TeX("Cases/100k"), limits = c(0, 50), na.value = "red") + 
     theme_bw()+
@@ -1065,15 +1086,15 @@ p_per_capita <-
     #labs(title = str_c("Reproduction Rate," TeX("$R_e$")),
       labs(title =  TeX("Daily Cases per 100k Population"),
          subtitle = TeX("Disease Containment is fewer than one case / 100k / day")) +
-     annotate(geom="text", x=-70, 
+     annotate(geom="text", x=-75, 
              y=25, 
-             label=str_c("ww44ss - ", today() ), size = 2.5,
+             label=str_c("@WinstonOnData - ", today() ), size = 2.5,
              color="Grey30") + facet_grid(.~party)
 
 
 p_short_term_change <-      
   ggplot() + 
-    geom_sf(data = data_x, aes(geometry = geom, fill = 100000*short_term_change/population), color = "white", size = 0.6, alpha = 0.85) + 
+    geom_sf(data = data_x, aes(geometry = geom, fill = 100000*short_term_change/population), color = "grey80", size = 0.6, alpha = 0.85) + 
     coord_sf(xlim = c(as.numeric(bbox[1]), as.numeric(bbox[3])), ylim = c(as.numeric(bbox[2]), as.numeric(bbox[4])), expand = FALSE) +
     scale_fill_gradientn(colors =plot_colors, name = TeX("Cases/100k"), limits = c(0, 50), na.value = "red") + 
     theme_bw()+
@@ -1089,9 +1110,9 @@ p_short_term_change <-
     #labs(title = str_c("Reproduction Rate," TeX("$R_e$")),
       labs(title =  TeX("Forecast of Daily Cases per 100k"),
          subtitle = TeX("Based on Computed Reproduction $R_e$ ")) +
-     annotate(geom="text", x=-70, 
+     annotate(geom="text", x=-75, 
              y=25, 
-             label=str_c("ww44ss - ", today() ), size = 2.5,
+             label=str_c("@WinstonOnData", today() ), size = 2.5,
              color="Grey30")
     
     
@@ -1118,7 +1139,11 @@ p_per_capita
 
 
 
-  
+```{r, warning = F, message = F, error = F, fig.align='center', fig.height =5, fig.width = 9, echo = F, eval = T}
+
+p_per_capita
+
+``` 
 
 
 
@@ -1217,69 +1242,118 @@ scale_color_gradient(low = "blue", high = "red", name = "% Trump Vote") +
 ```{r, fig.width = 6, fig.height = 4}
 
 data_x <- final_plot_data %>% 
+  filter(date >= max(date)-days(6)) %>%
+  mutate(cases = mean(cases), daily_cases = mean(daily_cases), deaths = mean(deaths), daily_deaths = mean(daily_deaths)) %>%
   filter(date == max(date)) %>%
   mutate(party_sku = ((votes_gop-votes_dem)/(votes_gop + votes_dem))) %>%
   mutate(hilary_fraction = ((votes_dem)/(votes_gop + votes_dem))) %>%
   mutate(winner = ifelse(hilary_fraction >=.5, "Clinton", "Trump")) %>%
+  mutate(daily_deaths_per_100k = 100000*(daily_deaths)/population) %>%
+  mutate(total_votes = votes_dem+votes_gop) %>%
   yo
 
 
-ggplot(data = data_x, aes(x = votes_dem+votes_gop, y = 100000*(daily_deaths+.1)/population, color = winner, size = population))+
+ggplot(data = data_x, aes(x = votes_dem+votes_gop, y = 100000*(daily_deaths)/population, color = winner, size = population))+
 scale_color_manual(values = c("blue", "red"), name = "Candidate") +  
-  geom_point(alpha = 0.3) + scale_y_log10() + scale_x_log10() +
-  geom_smooth(method = "gam", formula = y ~ log10(x), linetype="dashed",
+  geom_point(alpha = 0.1) + scale_y_log10() + scale_x_log10() +
+  geom_smooth(method = "gam", formula = y ~ x, linetype="dashed",
              color="darkred", fill="blue") + 
-  labs(title = str_c("2016 Election Vote vs. Daily COVID deaths on ", data_x$date[1]), subtitle = "Voter and COVID data per US County", y = str_c("daily deaths per 100k population"), x = "% Vote for Trump") + 
+  labs(title = str_c("2016 Election Vote vs. Mean Daily COVID deaths on ", data_x$date[1]), subtitle = "Voter and COVID data per US County", y = str_c("daily deaths per 100k population"), x = "Total County Votes") + 
   theme_bw() + 
   theme(legend.position = "none")+
-     annotate(geom="text", x=80, 
-             y=.0075, 
+     annotate(geom="text", x=100, 
+             y=.003, 
              label=str_c("@WinstonOnData - ", today() ), size = 2.5,
-             color="Grey30")
+             color="Grey30", hjust = 0)
   
 
 ```
 
-```{r, fig.width = 6, fig.height = 4, eval = F}
+
+
+```{r, fig.width = 6, fig.height = 4}
 
 data_x <- final_plot_data %>% 
+  filter(date >= max(date)-days(6)) %>%
+  mutate(cases = mean(cases), daily_cases = mean(daily_cases), deaths = mean(deaths), daily_deaths = mean(daily_deaths)) %>%
   filter(date == max(date)) %>%
   mutate(party_sku = ((votes_gop-votes_dem)/(votes_gop + votes_dem))) %>%
   mutate(hilary_fraction = ((votes_dem)/(votes_gop + votes_dem))) %>%
+  mutate(winner = ifelse(hilary_fraction >=.5, "Clinton", "Trump")) %>%
+  mutate(daily_deaths_per_100k = 100000*(daily_deaths)/population) %>%
+  mutate(total_votes = votes_dem+votes_gop) %>%
   yo
 
 
-ggplot(data = data_x, aes(x = population, y = 100000*(daily_deaths+.1)/population, color = 100*(1-hilary_fraction), size = population))+
-scale_color_gradient(low = "blue", high = "red", name = "% Trump Vote") + 
-  geom_point(alpha = 0.3) + scale_y_log10() + scale_x_log10() + 
-  labs(title = str_c("2016 Election Vote vs. Daily COVID deaths on ", data_x$date[1]), subtitle = "Voter and COVID data per US County", y = str_c("daily deaths per 100k population"), x = "% Vote for Trump") + 
+ggplot(data = data_x, aes(x = winner, y = 100000*(daily_deaths)/population))+
+scale_fill_manual(values = c("blue", "red"), name = "Candidate") +  
+  geom_boxplot(aes(fill = winner)) + scale_y_log10()+   
+  labs(title = str_c("2016 Election Vote vs. Mean Daily COVID deaths on ", data_x$date[1]), subtitle = "Voter and COVID data per US County", y = str_c("daily deaths per 100k population"), x = "Total County Votes") + 
+  theme_bw() 
+
+# + 
+#   theme(legend.position = "none")+
+#      annotate(geom="text", x=100, 
+#              y=.003, 
+#              label=str_c("@WinstonOnData - ", today() ), size = 2.5,
+#              color="Grey30", hjust = 0)
+  
+
+```
+```{r, fig.width = 6, fig.height = 4}
+
+data_x <- final_plot_data %>% 
+  filter(date >= max(date)-days(6)) %>%
+  mutate(cases = mean(cases), daily_cases = mean(daily_cases), deaths = mean(deaths), daily_deaths = mean(daily_deaths)) %>%
+  filter(date == max(date)) %>%
+  mutate(party_sku = ((votes_gop-votes_dem)/(votes_gop + votes_dem))) %>%
+  mutate(hilary_fraction = ((votes_dem)/(votes_gop + votes_dem))) %>%
+  mutate(winner = ifelse(hilary_fraction >=.5, "Clinton", "Trump")) %>%
+  mutate(daily_deaths_per_100k = 100000*(daily_deaths)/population) %>%
+  mutate(total_votes = votes_dem+votes_gop) %>%
+  yo
+
+
+ggplot(data = data_x, aes(x = 100000*(daily_deaths)/population))+
+scale_fill_manual(values = c("blue", "red"), name = "Candidate") +  
+  scale_x_log10()+
+  geom_histogram(aes(y = ..density.., fill = winner), position = "dodge") +   
+  labs(title = str_c("2016 Election Vote vs. Daily COVID deaths "), subtitle = "Voter and COVID data per US County", y = str_c("Density"), x = "Deaths per 100k Population") + 
   theme_bw() + 
-  theme(legend.position = "none")+
-     annotate(geom="text", x=80, 
-             y=.0075, 
+  #theme(legend.position = "none")+
+  geom_density(aes(fill = winner),alpha=.2) +
+     annotate(geom="text", x=30, 
+             y=.8, 
              label=str_c("@WinstonOnData - ", today() ), size = 2.5,
-             color="Grey30")
+             color="Grey30", hjust = 1)
+
+# + 
+#   theme(legend.position = "none")+
+#      annotate(geom="text", x=100, 
+#              y=.003, 
+#              label=str_c("@WinstonOnData - ", today() ), size = 2.5,
+#              color="Grey30", hjust = 0)
   
 
 ```
 
 
-```{r, fig.width = 6, fig.height = 4, eval = T}
+```{r, fig.width = 6, fig.height = 4, eval = F}
 
-data_x <- final_plot_data %>% 
+data_x <- final_plot_data %>%
   ungroup()%>%
   mutate(party_sku = ((votes_gop-votes_dem)/(votes_gop + votes_dem))) %>%
   mutate(hilary_fraction = ((votes_dem)/(votes_gop + votes_dem))) %>%
   mutate(winner = ifelse(hilary_fraction >=.5, "Clinton", "Trump")) %>%
   group_by(date, winner) %>%
   summarize(daily_cases = sum(daily_cases), cases = sum(cases), deaths = sum(deaths), daily_deaths = sum(daily_deaths), population = sum(population)) %>%
-  
+
   yo
 
 
 ggplot(data = data_x, aes(x = date, y = 100000*(daily_deaths+.1)/population, color = winner))+
 scale_color_manual(values = c("blue", "red"), name = "Candidate") + 
-  geom_line(alpha = 0.3, size = 2) +
+  geom_line(alpha = 0.5, size = 2) +
   labs(title = str_c("2016 Election Vote vs. Daily COVID deaths on ", data_x$date[1]), subtitle = "Voter and COVID data per US County", y = str_c("daily deaths per 100k population"), x = "date") + 
   theme_bw() + 
   theme(legend.position = "none")+
@@ -1304,7 +1378,7 @@ county_election <- read_csv("https://raw.githubusercontent.com/tonmcg/US_County_
 
 
 
-```{r, warning = F, message = F, fig.align='center', fig.height =5, fig.width = 9, echo = F, eval = T}
+```{r, warning = F, message = F, fig.align='center', fig.height =5, fig.width = 9, echo = F, eval = F}
 
 ## Control cases at county level map
 
