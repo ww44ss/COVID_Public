@@ -1787,6 +1787,7 @@ for (state_x in state_list) {
     theme(legend.position="top", axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
  
  print(pp)
+ cat("\n")
   
 }
   
