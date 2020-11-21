@@ -516,7 +516,7 @@ us_pop <- max(d_p$population)
 
 daily_deaths_per_100k_trend <- 100000*daily_deaths_trend/us_pop
 daily_cases_per_100k_trend <- 100000*daily_cases_trend/us_pop
-daily_mortality_percent_trend = 100*daily_cases_per_100k_trend/daily_deaths_per_100k_trend 
+daily_mortality_percent_trend = 100*daily_deaths_trend/daily_cases_trend
 
 
 p_total_cases <- ggplot(data = d_p, aes(x = date, y = total_cases) ) + 
@@ -532,54 +532,12 @@ p_total_cases <- ggplot(data = d_p, aes(x = date, y = total_cases) ) +
              color="steelblue4", hjust = 1) +
   theme_bw()
 
- 
-# p1_daily <- ggplot(data = d_p, aes(x = date) ) + 
-#  geom_line(aes(x = date, y = daily_cases2), color = "#891815", size = 0.8, alpha = 0.8)+
-#   labs(title = "Daily US Cases", subtitle = today(), y = "cases")+ 
-#   annotate(geom="text", x=(max(d_p$date) - days(30)), 
-#              y=(0.85*d_p[d_p$date == max(d_p$date),]$daily_cases[1]), 
-#              label=str_c((d_p[d_p$date == max(d_p$date),]$daily_cases2[1]/1000000)%>%round(0), " cases    "), size = 3.0,
-#              color="steelblue4") +
-#   annotate(geom="text", x=(max(d_p$date) - days(10)), 
-#              y=((100000/us_pop)*0.045*max(d_p$daily_deaths)), 
-#              label=str_c("@WinstonOnData ",today()), size = 3.0,
-#              color="steelblue4", hjust = 1) +
-#   theme_bw()
-
-
-# daily_per_capita <- ggplot(data = d_p, aes(x = date) ) + 
-#  geom_line(aes(x = date, y = 100000.*daily_cases2/us_pop), color = "#B91815", size = 0.8, alpha = 1)+
-#   labs(title = "Daily US Cases", subtitle = today(), y = "cases")+ 
-#    annotate(geom="text", x=(max(d_p$date) - days(30)), 
-#              y=(0.85*(100000/us_pop)*d_p[d_p$date == max(d_p$date),]$daily_cases[1]), 
-#               label=str_c((100000*daily_cases_trend/us_pop)%>%round(1), " cases per 100k    "), size = 3.0,
-#               color="steelblue4") +
-#   annotate(geom="text", x=(max(d_p$date) - days(10)), 
-#              y=((100000/us_pop)*0.045*max(d_p$daily_deaths)), 
-#              label=str_c("@WinstonOnData ",today()), size = 3.0,
-#              color="steelblue4", hjust = 1) +
-#   theme_bw()
-
-# p1_daily_deaths <- ggplot(data = d_p, aes(x = date) ) + 
-#  geom_col(aes(y = daily_deaths2), color = "grey80", width = 0.7, alpha = 0.5)+
-#   geom_line(aes(y = daily_deaths), size = 1, color = "#151589AA")+
-#   labs(title = "Daily US Deaths (daily data and fit)", subtitle = today(), y = "deaths")+ 
-#   annotate(geom="text", x=(max(d_p$date) - days(40)), 
-#              y=(0.05*max(d_p$daily_deaths)), 
-#              label=str_c("trend ", (d_p[d_p$date == max(d_p$date),]$daily_deaths[1])%>%round(0), " daily deaths    "), size = 3.0,
-#              color="steelblue4") +
-#   annotate(geom="text", x=(max(d_p$date) - days(10)), 
-#              y=((100000/us_pop)*0.045*max(d_p$daily_deaths)), 
-#              label=str_c("@WinstonOnData ",today()), size = 3.0,
-#              color="steelblue4", hjust = 1) +
-#   theme_bw()
-
 
 daily_deaths_per_capita <- ggplot(data = d_p, aes(x = date) ) + 
   #geom_hline(yintercept =(100000*daily_deaths_trend/us_pop), color = "#A51541", size = 0.7 ) +
  geom_col(aes(y = 100000.*daily_deaths2/us_pop), color = "grey80", width = 0.7, alpha = 0.5)+
   geom_line(aes(y = 100000*daily_deaths/us_pop), size = 1.1, color = "#891599AA")+
-  labs(title = "Daily US Deaths per 100k Population", subtitle = str_c("US trend is ", daily_deaths_per_100k_trend, " deaths per day"), y = "deaths per 100k per day")+ 
+  labs(title = "Daily US Deaths per 100k Population", subtitle = str_c("Currently ", daily_deaths_per_100k_trend, " deaths per day per 100k"), y = "deaths per 100k per day")+ 
   annotate(geom="text", x=(ymd("2020-07-01")), 
              y=((100000*daily_deaths_trend/us_pop)+.1), 
              label=str_c((100000*daily_deaths_trend/us_pop)%>%round(2),  " deaths/100k"), size = 3.0,
@@ -593,14 +551,13 @@ daily_deaths_per_capita <- ggplot(data = d_p, aes(x = date) ) +
 
 
 daily_deaths <- ggplot(data = d_p, aes(x = date) ) + 
-  #geom_hline(yintercept =(100000*daily_deaths_trend/us_pop), color = "#A51541", size = 0.7 ) +
  geom_col(aes(y = daily_deaths2), color = "grey80", width = 0.7, alpha = 0.5)+
   geom_line(aes(y = daily_deaths), size = 1.1, color = "#891599AA")+
-  labs(title = "Daily US Deaths ", subtitle = str_c("US trend is ", round(daily_deaths_per_100k_trend, 2), " deaths per day per 100k"), y = "deaths per day")+ 
-  annotate(geom="text", x=(min(d_p$date) + days(5)), 
+  labs(title = "Daily US Deaths ", subtitle = str_c(round(daily_deaths_per_100k_trend, 2), " deaths per 100k population per day"), y = "deaths per day")+ 
+  annotate(geom="text", x=(ymd("2020-08-15")), 
              y=((daily_deaths_trend)), 
              label=str_c(daily_deaths_trend,  " deaths per day"), size = 3.0,
-             color="steelblue4", hjust = 0, vjust = 1) +
+             color="steelblue4", hjust = 0, vjust = -1) +
   annotate(geom="text", x=(max(d_p$date) - days(10)), 
              y=(0.045*max(d_p$daily_deaths)), 
              label=str_c("@WinstonOnData ",today()), size = 2.5,
@@ -609,36 +566,34 @@ daily_deaths <- ggplot(data = d_p, aes(x = date) ) +
   theme_bw()
 
 daily_cases_per_capita <- ggplot(data = d_p, aes(x = date) ) +
-  #geom_hline(yintercept =(100000*daily_cases_trend/us_pop), color = "#A51541", size = 0.7 ) +
  geom_col(aes(y = 100000.*daily_cases2/us_pop), color = "grey80", width = 0.7, alpha = 0.5)+
   geom_line(aes(y = 100000*daily_cases/us_pop), size = 1.1, color = "#151599AA")+
-  labs(title = "Daily US Cases per 100k Population", subtitle = str_c("US trend is ", daily_cases_trend, " cases per day"), y = "cases per 100k per day")+ 
+  labs(title = "Daily US Cases per 100k Population", subtitle = str_c(daily_cases_trend, " cases per day"), y = "cases per 100k per day")+ 
   annotate(geom="text", x=(min(d_p$date) + days(5)), 
-             y=((100000*daily_cases_trend/us_pop)*1.05), 
+             y=((100000*daily_cases_trend/us_pop)), 
              label=str_c((100000*daily_cases_trend/us_pop)%>%round(1),  " cases/100k"), size = 3.0,
-             color="steelblue4", hjust = 0) +
+             color="steelblue4", hjust = 0, vjust = -1) +
   annotate(geom="text", x=(max(d_p$date) - days(10)), 
              y=((100000/us_pop)*0.045*max(d_p$daily_cases)), 
              label=str_c("@WinstonOnData ",today()), size = 2.5,
              color="steelblue4", hjust = 1) +
-  geom_hline(yintercept =(100000*daily_cases_trend/us_pop), color = "#A51541", size = 0.7, alpha = 0.2 ) +
+  geom_hline(yintercept =(100000*daily_cases_trend/us_pop), color = "#A51541", size = 0.7, alpha = 0.4 ) +
   theme_bw()
 
 
 daily_cases <- ggplot(data = d_p, aes(x = date) ) +
-  #geom_hline(yintercept =(100000*daily_cases_trend/us_pop), color = "#A51541", size = 0.7 ) +
  geom_col(aes(y = daily_cases2), color = "grey80", width = 0.7, alpha = 0.5)+
   geom_line(aes(y = daily_cases), size = 1.1, color = "#151599AA")+
-  labs(title = "Daily US Cases", subtitle = str_c("US trend is ", daily_cases_trend, " cases per day"), y = "cases per day")+ 
+  labs(title = "Daily US Cases", subtitle = str_c((100000*daily_cases_trend/us_pop)%>%round(1), " cases per 100k population per day"), y = "cases per day")+ 
   annotate(geom="text", x=(min(d_p$date) + days(5)), 
-             y=((daily_cases_trend)*1.06), 
-             label=str_c((100000*daily_cases_trend/us_pop)%>%round(1),  " cases/100k"), size = 3.0,
-             color="steelblue4", hjust = 0) +
+             y=((daily_cases_trend)), 
+             label=str_c(daily_cases_trend,  " cases per day"), size = 3.0,
+             color="steelblue4", hjust = 0, vjust = 1) +
   annotate(geom="text", x=(max(d_p$date) - days(10)), 
              y=(0.045*max(d_p$daily_cases)), 
              label=str_c("@WinstonOnData ",today()), size = 2.5,
              color="steelblue4", hjust = 1) +
-  geom_hline(yintercept =(daily_cases_trend), color = "#A51541", size = 0.7, alpha = 0.2 ) +
+  geom_hline(yintercept =(daily_cases_trend), color = "#A51541", size = 0.7, alpha = 0.4 ) +
   theme_bw()
 
 
@@ -662,16 +617,17 @@ p_mortality <- ggplot(d_p,
 
 p_daily_mortality <- ggplot(d_p%>%filter(date > ymd("2020-03-15")), 
        aes(x = date, y = daily_mortality)) + 
-  geom_line(color = "#C46232", size = 1, alpha = 0.8) + 
-  labs(title = "Daily Deaths/Cases", subtitle = today(), y = "mortaility (%)")+
-  annotate(geom="text", x=(max(d_p$date) - days(40)), 
-             y=1.2*daily_mortality_percent_trend, 
+  geom_line(color = "#C46232", size = 1.5, alpha = 0.8) + 
+  labs(title = "Daily Deaths/Cases", y = "daily mortality (%)")+
+  annotate(geom="text", x=(ymd("2020-5-01")), 
+             y=daily_mortality_percent_trend, 
              label=str_c(daily_mortality_percent_trend%>%round(1), "% mortality"), size = 3.0,
-             color="steelblue4") +
+             color="steelblue4", hjust = 0, vjust = -1) +
   annotate(geom="text", x=(max(d_p$date) - days(10)), 
              y=0.01, 
              label=str_c("@WinstonOnData ",today()), size = 2.5,
              color="steelblue4", hjust = 1) +
+  geom_hline(yintercept =daily_mortality_percent_trend, color = "#A51541", size = 0.7, alpha = 0.4 ) +
   ylim(0,9)+
   theme_bw()
 
@@ -679,10 +635,10 @@ p_total_deaths <- ggplot(d_p,
        aes(x = date, y = total_deaths)
          ) + geom_line(color = "#A46242", size = 1, alpha = 0.8) + 
   labs(title = "Total US Deaths", subtitle = str_c((round(100000*max(d_p$total_deaths)/us_pop, 1)), " deaths per 100k population "), y = "deaths")+
-    annotate(geom="text", x=(max(d_p$date) - days(120)), 
+    annotate(geom="text", x=(max(d_p$date) - days(20)), 
              y=0.98*max(d_p$total_deaths), 
              label=str_c((max(d_p$total_deaths)/1000) %>% round(1), " thousand deaths  "), size = 3.0,
-             color="steelblue4") +
+             color="steelblue4", hjust = 1) +
   annotate(geom="text", x=(max(d_p$date) - days(8)), 
              y=((100000/us_pop)*0.043*max(d_p$daily_deaths)), 
              label=str_c("@WinstonOnData ",today()), size = 2.5,
@@ -690,35 +646,21 @@ p_total_deaths <- ggplot(d_p,
   theme_bw()
 
 
-# p_dailycases <- ggplot(d_p,
-#                        aes(x = date, y = daily_cases2))  +
-#   labs(title = "US Daily Cases", subtitle = today(), y = "cases")+
-#   geom_col(color = "grey80", width = 0.7, alpha = 0.5) +
-#   geom_line(aes(y = daily_cases), color = "#2462A2", size = 1.1, alpha = 1) + 
-#     annotate(geom="text", x=(min(d_p$date) + days(60)), 
-#              y=max(0.95*d_p$daily_cases), 
-#              label=str_c("trend ",round(d_p[d_p$date == max(d_p$date),]$daily_cases[1]/1000,2)," thousand daily cases    "), size = 3.0,
-#              color="steelblue4") +
-#   annotate(geom="text", x=(max(d_p$date) - days(10)), 
-#              y=((100000/us_pop)*0.045*max(d_p$daily_deaths)), 
-#              label=str_c("@WinstonOnData ",today()), size = 3.0,
-#              color="steelblue4", hjust = 1) +
-#   theme_bw()
-
 
 p_r <- 
   ggplot(d_p%>%filter(date > ymd("2020-03-15")),
-                       aes(x = date, y = r_e)) + geom_line(color = "#5442E2", size = 1.5, alpha = 0.8) + geom_smooth(span = .3)+
-  labs(title = "Effective Reproduction Rate", subtitle = "Smoothed Trend Added with Estimated Variance", y = "R_e")+
+                       aes(x = date, y = r_e)) + geom_line(color = "#C46232", size = 0.8, alpha = 0.8) + geom_smooth(span = .18, size = 1.5)+
+  labs(title = "Effective Reproduction Rate", y = "R_e")+
   scale_y_log10()+
-  annotate(geom="text", x=(max(d_p$date) - days(40)), 
-             y=0.85*max(d_p$r_e), 
+  annotate(geom="text", x=(ymd("2020-08-01")), 
+             y=d_p[d_p$date == max(d_p$date),]$r_e[1], 
              label=str_c("R_e = ",(d_p[d_p$date == max(d_p$date),]$r_e[1])%>%round(2)), size = 3.0,
-             color="steelblue4") +
+             color="steelblue4", hjust = 0, vjust = -1) +
   annotate(geom="text", x=(max(d_p$date) - days(10)), 
              y=0.6, 
              label=str_c("@WinstonOnData ",today()), size = 2.5,
              color="steelblue4", hjust = 1) +
+  geom_hline(yintercept = d_p[d_p$date == max(d_p$date),]$r_e[1], color = "#A51541", size = 0.7, alpha = 0.4 ) +
   theme_bw()
 
 
@@ -733,7 +675,7 @@ grid.arrange(p_total_cases, daily_cases, p_total_deaths, daily_deaths,  nrow = 2
 ## Mortality and $R_e$     
 
 
-```{r, fig.height=4, fig.width=9, fig.align="center"}
+```{r, fig.height=4, fig.width=9, fig.align="center", fig.height=3}
 grid.arrange(p_r, p_daily_mortality,nrow = 1)
 
 ```
@@ -741,7 +683,7 @@ grid.arrange(p_r, p_daily_mortality,nrow = 1)
   
 ## Distribution of $R_e$ Values    
 
-There is a wide dirstubtion of $R_e$ across regions and counties.  The distributions in the graph below looks roughly symmetrical because the x-scale is logarithmic.  
+There is a wide distribution of $R_e$ across regions and counties.  The distributions in the graph below looks roughly symmetrical because the x-scale is logarithmic.  
 
 ```{r, fig.height=3.5, fig.width=9, fig.align="center"}
 data_x <- final_plot_data %>%
@@ -763,16 +705,17 @@ ggplot(data_x, aes(r_e,y=..density.., fill = date)) + geom_histogram(bins =30 , 
 
 # National Maps    
 
-The key indicator for disease forcasting is the Effective Reproduction Rate $R_e$, which is a measure of how many new cases each existing case of disease creates.  
-
-When a lot of people are sick in a population without mass-immunity you want $R_e \ll 1$ or $log_2$($R_e$) < 0) to acheive negative disease growth. 
-
-After achieving negative growth, the next phase of recovery is maintaining consistently lower levels of disease to a level where disease cases can be micro-managed. There's no clear agreement on how few that is, but I've seen estimates as low as 500 cases per day across the US (about 0.16 cases per 100k population). 
-
-An estimate of the disease "toll" is the number of officially tallied deaths. It is fully agreed this vastly underestimates that actual cost of the disease. Death counts are almost certainly [underestimated](https://www.wsj.com/articles/covid-19s-exact-toll-is-murky-though-u-s-deaths-are-up-sharply-11589555652) and this does not reflect any [long lasting](https://www.mayoclinic.org/diseases-conditions/coronavirus/in-depth/coronavirus-long-term-effects/art-20490351) health effects on those who recover. 
 
 
-## State Level Data   
+## State Level Data 
+
+There are several maps below. These include:   
+
+- pandemic total cases (How many people have been sick?)
+- pandemic total cases per capita (What fraction of people have been sick?)
+- daily cases per capita (what fraction of people are getting sick?)   
+- forecast short term cases per capita (based on $R_e$) (how fast is the disease growning or shrinking?)
+
 
 ### Pandemic Totals
 
@@ -849,7 +792,7 @@ t_cases <-
          subtitle = TeX("Total Cases by State")) +
      annotate(geom="text", x=-70, 
              y=25, 
-             label=str_c("ww44ss - ", today() ), size = 2.5,
+             label=str_c("@WinstonOnData - ", today() ), size = 2.5,
              color="Grey30") 
   
   
@@ -1089,7 +1032,7 @@ While the State-Level Data Tell as remarkable story, it is also interesting to l
          subtitle=str_c("NYTimes COVID19 Database: data through ", date_display), "color = cases/100k") +
      annotate(geom="text", x=-70,
              y=25,
-             label=str_c("ww44ss - ", today() ), size = 2.5,
+             label=str_c("@WinstonOnData - ", today() ), size = 2.5,
              color="Grey30") 
     
 
@@ -1409,7 +1352,7 @@ plot_colors <- plot_colors[-c(1,(6:7))]
          subtitle=str_c("NYTimes Database")) +
      annotate(geom="text", x=-70,
              y=25,
-             label=str_c("ww44ss - ", today() ), size = 2.5,
+             label=str_c("@WinstonOnData - ", today() ), size = 2.5,
              color="Grey30")
     
 
@@ -1517,7 +1460,7 @@ plot_colors <- c("#3994FC", "white", "darkorange")
          subtitle = TeX("Disease reduction requires $log_2(R_e)$ < 0")) +
      annotate(geom="text", x=-70,
              y=25,
-             label=str_c("ww44ss - ", today() ), size = 2.5,
+             label=str_c("@WinstonOnData - ", today() ), size = 2.5,
              color="Grey30")
     
 
@@ -1546,9 +1489,9 @@ data_x <- final_plot_data %>%
 
 state_list <- data_x %>% 
   ungroup()%>%
-  mutate(r_e = round(r_e,2), cases = round(cases,0 ), daily_cases = round(daily_cases, 0))%>%
-  select (state, 'R_e'=r_e , cases, daily_cases )%>%
-  arrange(desc(R_e))%>%
+  mutate(r_e = round(r_e,2), cases = round(cases,0 ), daily_cases = round(daily_cases, 0), daily_cases_per_100k = 100000*daily_cases/population)%>%
+  select (state, 'R_e'=r_e , cases, daily_cases, daily_cases_per_100k )%>%
+  arrange(desc(daily_cases_per_100k))%>%
   ungroup()%>%
   yo
 
@@ -1556,7 +1499,7 @@ state_list <- data_x %>%
 
 kable(state_list, align = c("l", rep("c", 3))) %>% 
   column_spec(1, width = "1.75in") %>%
-  column_spec(2:4, width = "1.0in") %>%
+  column_spec(2:5, width = "1.0in") %>%
   kable_styling(full_width = F,  font_size = 13, bootstrap_options = c("hover", "striped")) %>% 
   row_spec(0, bold = T, color = "Grey80", background = "#FCAC6E") %>%
     scroll_box(width = "550px", height = "200px")
@@ -1790,7 +1733,7 @@ Region_Trend <- function(data_x = final_plot_data, state_y = c("WA", "OR", "CA")
 
 These are the top county level per capita case rates (up to 30) for a few selected states. For comparison, per capita cases.  
 
-```{r, warning=F, error=F, fig.align='center', message = F, error=F, warning = F, fig.height=3.5, fig.width = 7, eval = T}
+```{r, warning=F, error=F, fig.align='center', message = F, error=F, warning = F, fig.height=3.5, fig.width = 7, eval = F}
 
 
 ###
@@ -1806,13 +1749,15 @@ state_list = c("WA", "OR", "CA", "CO", "MA", "VA", "GA")
 
 for (state_x in state_list) {
   
+  #state_x <- "WA  #debug
+  
   d_p <- data_x %>% filter(ST == state_x)
   
   case_max_county<- d_p %>%
     filter(date == max(date)) %>%
     arrange(desc(cases)) %>%
     select(county) %>%
-    slice(1:30)
+    slice(1:25)
   
   # 
   # # ADD A FORCECAST
@@ -1826,7 +1771,7 @@ for (state_x in state_list) {
   d_p <- d_p %>% right_join(case_max_county, by ="county")
   
  pp<- ggplot(data = d_p,
-         aes(x = fct_reorder(county, desc(100000*cases/population)) , y = 100000*cases/population, fill = as.factor(date)) )+
+         aes(x = fct_reorder(county, desc(cases)) , y = 100000*daily_cases/population, fill = as.factor(date)) )+
     geom_col(position = "dodge") + 
     labs(title = str_c("Cases per day per 100k population for top counties in ", state_x), x = "county", y = "cases per day per 100k", fill = "date") + scale_fill_manual(values = c("#2244DD99", "#1111DD", "#DD442299"))+
    #scale_y_log10()+
