@@ -16,7 +16,7 @@ output:
 
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, fig.height = 4, fig.align = "center", message = FALSE, warning= FALSE, error = FALSE)
+knitr::opts_chunk$set(echo = FALSE, fig.height = 3.2, fig.align = "center", message = FALSE, warning= FALSE, error = FALSE)
 
 options(scipen=999)
 
@@ -740,18 +740,21 @@ states <- states_cache
 
   plot_colors <- c(brewer.pal(n = 11, name = "RdYlGn")[1:9], "#3392B2", "#1133C5")
   plot_colors <- plot_colors[-c(1, 6:7)]
-  plot_colors <- rev(plot_colors)
+  plot_colors2 <- rev(plot_colors)
+  plot_colors <- brewer.pal(n = 11, name = "OrRd")
+  plot_colors_deaths <- brewer.pal(n = 11, name = "Reds")
 
 data_x <- final_plot_data %>%
   group_by(ST) %>%
   filter(date == max(date)) %>%
-  summarize(cases = sum(cases), daily_cases = sum(daily_cases), rolling_baseline_14 = sum(rolling_baseline_14), population = sum(population))%>%
+  summarize(cases = sum(cases), daily_cases = sum(daily_cases), rolling_baseline_14 = sum(rolling_baseline_14), population = sum(population), deaths = sum(deaths), daily_deaths = sum(daily_deaths))%>%
   mutate(r_e = 12*daily_cases/rolling_baseline_14) %>%
-  select(ST, cases, daily_cases, rolling_baseline_14, r_e, population) %>%
+  select(ST, cases, daily_cases, rolling_baseline_14, r_e, population, deaths, daily_deaths) %>%
   mutate(r_e = ifelse(r_e > 1.5, 1.5, r_e)) %>%
   mutate(r_e = ifelse(r_e < 0.66, 0.66, r_e)) %>%
   mutate(daily_cases_per_capita = 10^5*daily_cases/population) %>%
-  mutate(short_term_change = 10^5*(r_e-1)*daily_cases/population)%>%
+  mutate(daily_deaths_per_capita = 10^5*daily_deaths/population) %>%
+  mutate(short_term_change = 10^5*(1+(1-r_e)/2)*daily_cases/population)%>%
   yo
 
 data_x<-states %>%
@@ -790,7 +793,7 @@ t_cases <-
     #labs(title = str_c("Reproduction Rate," TeX("$R_e$")),
       labs(title =  TeX("How Many People Have Been Sick?"),
          subtitle = TeX("Total Cases by State")) +
-     annotate(geom="text", x=-70, 
+     annotate(geom="text", x=-72, 
              y=25, 
              label=str_c("@WinstonOnData - ", today() ), size = 2.5,
              color="Grey30") 
@@ -800,7 +803,7 @@ t_cases_per_capita <-
   ggplot() + 
     geom_sf(data = data_x, aes(geometry = geom, fill = 100000*cases/population), color = "white", size = 0.6, alpha = 0.85) + 
     coord_sf(xlim = c(as.numeric(bbox[1]), as.numeric(bbox[3])), ylim = c(as.numeric(bbox[2]), as.numeric(bbox[4])), expand = FALSE) +
-    scale_fill_gradientn(colors =plot_colors, name = TeX("Cases/100k"), limits = c(0, 7500), na.value = "red") + 
+    scale_fill_gradientn(colors =plot_colors, name = TeX("Cases/100k"), limits = c(0, 10000), na.value = "red") + 
     theme_bw()+
     theme(axis.title.x=element_blank(),
           axis.text.x=element_blank(),
@@ -818,13 +821,64 @@ t_cases_per_capita <-
              y=25, 
              label=str_c("@WinstonOnData - ", today() ), size = 2.5,
              color="Grey30")  
+
+
+
+
+t_deaths <-    
+  ggplot() + 
+    geom_sf(data = data_x, aes(geometry = geom, fill = deaths), color = "white", size = 0.6, alpha = 0.85) + 
+    coord_sf(xlim = c(as.numeric(bbox[1]), as.numeric(bbox[3])), ylim = c(as.numeric(bbox[2]), as.numeric(bbox[4])), expand = FALSE) +
+    scale_fill_gradientn(colors =plot_colors_deaths, name = TeX("Deaths"), limits = c(0, 30000), na.value = "red") + 
+    theme_bw()+
+    theme(axis.title.x=element_blank(),
+          axis.text.x=element_blank(),
+          axis.ticks.x=element_blank(),
+          axis.title.y=element_blank(),
+          axis.text.y=element_blank(),
+          axis.ticks.y=element_blank(),
+          panel.grid.major = element_blank(), 
+          panel.grid.minor = element_blank(),
+          strip.text = element_text(color = "#154555", size = 14, face = "bold")) +
+    #labs(title = str_c("Reproduction Rate," TeX("$R_e$")),
+      labs(title =  TeX("How Many People Have Died?"),
+         subtitle = TeX("Total Deaths by State")) +
+     annotate(geom="text", x=-72, 
+             y=25, 
+             label=str_c("@WinstonOnData - ", today() ), size = 2.5,
+             color="Grey30") 
+  
+  
+t_deaths_per_capita <-    
+  ggplot() + 
+    geom_sf(data = data_x, aes(geometry = geom, fill = 100000*deaths/population), color = "white", size = 0.6, alpha = 0.85) + 
+    coord_sf(xlim = c(as.numeric(bbox[1]), as.numeric(bbox[3])), ylim = c(as.numeric(bbox[2]), as.numeric(bbox[4])), expand = FALSE) +
+    scale_fill_gradientn(colors =plot_colors_deaths, name = TeX("Deaths/100k"), limits = c(0, 200), na.value = "red") + 
+    theme_bw()+
+    theme(axis.title.x=element_blank(),
+          axis.text.x=element_blank(),
+          axis.ticks.x=element_blank(),
+          axis.title.y=element_blank(),
+          axis.text.y=element_blank(),
+          axis.ticks.y=element_blank(),
+          panel.grid.major = element_blank(), 
+          panel.grid.minor = element_blank(),
+          strip.text = element_text(color = "#154555", size = 14, face = "bold")) +
+    #labs(title = str_c("Reproduction Rate," TeX("$R_e$")),
+      labs(title =  TeX("What Fraction People Have Died?"),
+         subtitle = TeX("Total Deaths by State Per 100k Population")) +
+     annotate(geom="text", x=-72, 
+             y=25, 
+             label=str_c("@WinstonOnData - ", today() ), size = 2.5,
+             color="Grey30")  
+
   
 
 p_reproduction <-    
   ggplot() + 
     geom_sf(data = data_x, aes(geometry = geom, fill = log2(r_e)), color = "white", size = 0.6, alpha = 0.85) + 
     coord_sf(xlim = c(as.numeric(bbox[1]), as.numeric(bbox[3])), ylim = c(as.numeric(bbox[2]), as.numeric(bbox[4])), expand = FALSE) +
-    scale_fill_gradientn(colors =plot_colors, name = TeX("log_2(R_e)"), limits = c(-0.61, 0.61)) + 
+    scale_fill_gradientn(colors =plot_colors2, name = TeX("log_2(R_e)"), limits = c(-0.61, 0.61)) + 
     theme_bw()+
     theme(axis.title.x=element_blank(),
           axis.text.x=element_blank(),
@@ -848,7 +902,7 @@ p_per_capita <-
   ggplot() + 
     geom_sf(data = data_x, aes(geometry = geom, fill = daily_cases_per_capita), color = "white", size = 0.6, alpha = 0.85) + 
     coord_sf(xlim = c(as.numeric(bbox[1]), as.numeric(bbox[3])), ylim = c(as.numeric(bbox[2]), as.numeric(bbox[4])), expand = FALSE) +
-    scale_fill_gradientn(colors =plot_colors, name = TeX("Cases/100k"), limits = c(0, 200), na.value = "red") + 
+    scale_fill_gradientn(colors =plot_colors, name = TeX("Cases/100k"), limits = c(0, 250), na.value = "red") + 
     theme_bw()+
     theme(axis.title.x=element_blank(),
           axis.text.x=element_blank(),
@@ -868,38 +922,38 @@ p_per_capita <-
              color="Grey30")
 
 
-p_short_term_change <-      
-  ggplot() + 
-    geom_sf(data = data_x, aes(geometry = geom, fill = short_term_change), color = "white", size = 0.6, alpha = 0.85) + 
-    coord_sf(xlim = c(as.numeric(bbox[1]), as.numeric(bbox[3])), ylim = c(as.numeric(bbox[2]), as.numeric(bbox[4])), expand = FALSE) +
-    scale_fill_gradientn(colors =plot_colors, name = TeX("Cases/100k"), limits = c(-50, 50), na.value = "red") + 
-    theme_bw()+
-    theme(axis.title.x=element_blank(),
-          axis.text.x=element_blank(),
-          axis.ticks.x=element_blank(),
-          axis.title.y=element_blank(),
-          axis.text.y=element_blank(),
-          axis.ticks.y=element_blank(),
-          panel.grid.major = element_blank(), 
-          panel.grid.minor = element_blank(),
-          strip.text = element_text(color = "#154555", size = 14, face = "bold")) +
-    #labs(title = str_c("Reproduction Rate," TeX("$R_e$")),
-      labs(title =  TeX("Forecast of CHANGE in Daily Cases per 100k"),
-         subtitle = TeX("Based on Computed Reproduction $R_e$ ")) +
-     annotate(geom="text", x=-72, 
-             y=25, 
-             label=str_c("@WinstonOnData - ", today() ), size = 2.5,
-             color="Grey30")
-    
+# p_short_term_change <-      
+#   ggplot() + 
+#     geom_sf(data = data_x, aes(geometry = geom, fill = short_term_change), color = "white", size = 0.6, alpha = 0.85) + 
+#     coord_sf(xlim = c(as.numeric(bbox[1]), as.numeric(bbox[3])), ylim = c(as.numeric(bbox[2]), as.numeric(bbox[4])), expand = FALSE) +
+#     scale_fill_gradientn(colors =plot_colors, name = TeX("Cases/100k"), limits = c(0,250), na.value = "red") + 
+#     theme_bw()+
+#     theme(axis.title.x=element_blank(),
+#           axis.text.x=element_blank(),
+#           axis.ticks.x=element_blank(),
+#           axis.title.y=element_blank(),
+#           axis.text.y=element_blank(),
+#           axis.ticks.y=element_blank(),
+#           panel.grid.major = element_blank(), 
+#           panel.grid.minor = element_blank(),
+#           strip.text = element_text(color = "#154555", size = 14, face = "bold")) +
+#     #labs(title = str_c("Reproduction Rate," TeX("$R_e$")),
+#       labs(title =  TeX("Forecast of CHANGE in Daily Cases per 100k"),
+#          subtitle = TeX("Based on Computed Reproduction $R_e$ ")) +
+#      annotate(geom="text", x=-72, 
+#              y=25, 
+#              label=str_c("@WinstonOnData - ", today() ), size = 2.5,
+#              color="Grey30")
+#     
     
 
 
 ```
 
 
-```{r, warning = F, message = F, error = F, fig.align='center', fig.height =7, fig.width = 8, echo = F, eval = T}
+```{r, warning = F, message = F, error = F, fig.align='center', fig.height =14, fig.width = 8, echo = F, eval = T}
 
-grid.arrange(t_cases, t_cases_per_capita, nrow = 2)
+grid.arrange(t_cases, t_cases_per_capita, t_deaths, t_deaths_per_capita, nrow = 4)
 
 ```
 
@@ -914,18 +968,13 @@ p_reproduction
 
 ```
 
-How many cases are there per day, per capita, in each state? You can see the number of current cases varies widely. I also include a forecast of the number of cases about a week from now given current trends. Most states currently show improvement. 
+  
+```{r, warning = F, message = F, error = F, fig.align='center', fig.height =4.5, fig.width = 8, echo = F, eval = T}
 
-```{r, warning = F, message = F, error = F, fig.align='center', fig.height =7, fig.width = 8, echo = F, eval = T}
-
-grid.arrange(p_per_capita, p_short_term_change, nrow = 2)
+#grid.arrange(p_per_capita, p_short_term_change, nrow = 2)
+grid.arrange(p_per_capita)
 
 ```
-
-
-
-  
-
 
 
 
@@ -960,6 +1009,7 @@ While the State-Level Data Tell as remarkable story, it is also interesting to l
   plot_colors <- rev(c(brewer.pal(n = 5, name = "RdYlGn"), "#3392B2"))
   
   plot_colors <- c("grey99","seashell","bisque","salmon", "darkred")
+  plot_colors <- c("grey99","rosybrown1", "rosybrown4")
   
   
   states <- st_as_sf(map("state", plot = FALSE, fill = TRUE)) %>%
@@ -1164,8 +1214,7 @@ While the State-Level Data Tell as remarkable story, it is also interesting to l
 
   
   #plot_colors <- rev(c(brewer.pal(n = 5, name = "RdYlGn"), "#3392B2"))
-  plot_colors <- c("white", "darkred")
-  plot_colors <- c("grey99","deepskyblue1", "darkslateblue")
+  plot_colors <- c("grey99","violetred1", "violetred4")
   
   states <- st_as_sf(map("state", plot = FALSE, fill = TRUE)) %>%
     mutate(state = toTitleCase(ID)) %>%
@@ -1382,7 +1431,6 @@ plot_colors <- plot_colors[-c(1,(6:7))]
 plot_colors <- c(brewer.pal(n = 11, name = "RdYlGn")[1:9], "#3392B2", "#1133C5")
 plot_colors <- plot_colors[-c(1,(6:7))]
 plot_colors <- rev(plot_colors)
-plot_colors <- c("#3994FC", "white", "darkorange")
   
   
   states <- st_as_sf(map("state", plot = FALSE, fill = TRUE)) %>%
@@ -1489,19 +1537,21 @@ data_x <- final_plot_data %>%
 
 state_list <- data_x %>% 
   ungroup()%>%
-  mutate(r_e = round(r_e,2), cases = round(cases,0 ), daily_cases = round(daily_cases, 0), daily_cases_per_100k = 100000*daily_cases/population)%>%
-  select (state, 'R_e'=r_e , cases, daily_cases, daily_cases_per_100k )%>%
+  mutate(r_e = round(r_e,2), cases = round(cases,0 ), daily_cases = round(daily_cases, 0), daily_cases_per_100k = round(100000*daily_cases/population, 1))%>%
   arrange(desc(daily_cases_per_100k))%>%
+  select (state, 'R_e'=r_e , cases, 'daily cases'= daily_cases, 'daily cases per 100k'= daily_cases_per_100k )%>%
   ungroup()%>%
   yo
 
 
 
-kable(state_list, align = c("l", rep("c", 3))) %>% 
-  column_spec(1, width = "1.75in") %>%
-  column_spec(2:5, width = "1.0in") %>%
-  kable_styling(full_width = F,  font_size = 13, bootstrap_options = c("hover", "striped")) %>% 
-  row_spec(0, bold = T, color = "Grey80", background = "#FCAC6E") %>%
+kable(state_list, align = c("l", rep("c", 4))) %>% 
+  column_spec(1, width = "1.5in") %>%
+  column_spec(2, width = "0.5in") %>%
+  column_spec(3:4, width = "1.0in") %>%
+  column_spec(5, width = "1.5in") %>%
+  kable_styling(full_width = F,  font_size = 12, bootstrap_options = c("hover", "striped")) %>% 
+  row_spec(0, bold = T, color = "linen", background = "#FCAC6E") %>%
     scroll_box(width = "550px", height = "200px")
 
 ```
@@ -1733,7 +1783,7 @@ Region_Trend <- function(data_x = final_plot_data, state_y = c("WA", "OR", "CA")
 
 These are the top county level per capita case rates (up to 30) for a few selected states. For comparison, per capita cases.  
 
-```{r, warning=F, error=F, fig.align='center', message = F, error=F, warning = F, fig.height=3.5, fig.width = 7, eval = F}
+```{r, warning=F, error=F, fig.align='center', message = F, error=F, warning = F, fig.height=3.5, fig.width = 7, eval = T}
 
 
 ###
@@ -1745,7 +1795,7 @@ data_x <- final_plot_data %>%
 
 state_list = unique(data_x$ST)
 
-state_list = c("WA", "OR", "CA", "CO", "MA", "VA", "GA")
+state_list = c("WA", "OR", "CA")
 
 for (state_x in state_list) {
   
@@ -1773,13 +1823,14 @@ for (state_x in state_list) {
  pp<- ggplot(data = d_p,
          aes(x = fct_reorder(county, desc(cases)) , y = 100000*daily_cases/population, fill = as.factor(date)) )+
     geom_col(position = "dodge") + 
-    labs(title = str_c("Cases per day per 100k population for top counties in ", state_x), x = "county", y = "cases per day per 100k", fill = "date") + scale_fill_manual(values = c("#2244DD99", "#1111DD", "#DD442299"))+
+    labs(title = str_c("Cases per day per 100k population for top counties in ", state_x), x = "county", y = "cases per day per 100k", fill = "date") + scale_fill_manual(values = c("lightskyblue1", "lightskyblue4", "#DD442299"))+
    #scale_y_log10()+
     annotate(geom="text", x=2, 
-             y=200, 
+             y=3, 
              label=str_c("@WinstonOnData ",today()), size = 2.5,
              color="white", hjust = 0, vjust = 0) + 
-    theme(legend.position="top", axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+   theme_bw()+
+   theme(legend.position="top", axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
  
 print(pp)
 
