@@ -189,13 +189,16 @@ plot_data <- county_data %>%
 
 
 
-fips_list <- unique(plot_data$fips)
+
+fips_list <- unique((plot_data%>%filter(state != "Puerto Rico"))$fips)
 
 
 
 plot_data_smooth <- NULL
 
 for(fips_x in fips_list) {
+  
+  #cat(">", fips_x, "   \n")
   
   ## select fips code and add index for fit
   
@@ -236,12 +239,7 @@ for(fips_x in fips_list) {
     mutate(n = row_number()) %>%
     yo
   
-  
-  
-  fips_data <- fips_data %>%
-    mutate(n = row_number()) %>%
-    yo
-    
+ 
  
   fips_data <- fips_data %>%
     mutate(cases = ifelse(cases <0, 0, cases))%>%
@@ -336,6 +334,7 @@ for(fips_x in fips_list) {
   }
   
 }
+
 
 
 ## download census data
@@ -653,7 +652,7 @@ p_dailycases <- ggplot(d_p,
 
 p_r <- 
   ggplot(d_p %>% filter(date >= ymd("2020-03-21")),
-                       aes(x = date, y = r_e, color = party)) + geom_line(size = 0.3, alpha = 0.4) + geom_smooth(span = .3, se=FALSE, size = 1.7)+
+                       aes(x = date, y = r_e, color = party)) + geom_line(size = 0.3, alpha = 0.5) + geom_smooth(span = .25, se=FALSE, size = 2.5, alpha = 0.6)+
   labs(title = "Effective Reproduction Rate", subtitle = "By State Governor's party affiliation", y = "R_e")+
   scale_color_manual(values = c("blue", "red"))+
   scale_y_log10()+

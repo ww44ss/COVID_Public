@@ -384,9 +384,6 @@ return(plot_data_smooth)
 ```
 
 
-
-
-
 ```{r, warning=F, message=F}
 
 ## create dated file name tag
@@ -648,7 +645,7 @@ p_total_deaths <- ggplot(d_p,
 
 p_r <- 
   ggplot(d_p%>%filter(date > ymd("2020-03-15")),
-                       aes(x = date, y = r_e)) + geom_line(color = "#C46232", size = 0.8, alpha = 0.8) + geom_smooth(span = .18, size = 1.5)+
+                       aes(x = date, y = r_e)) + geom_line(color = "#C46232", size = 0.8, alpha = 0.8) + geom_smooth(span = .15, size = 2, alpha = 0.8)+
   labs(title = "Effective Reproduction Rate", y = "R_e")+
   scale_y_log10()+
   annotate(geom="text", x=(ymd("2020-08-01")), 
@@ -901,7 +898,7 @@ p_per_capita <-
   ggplot() + 
     geom_sf(data = data_x, aes(geometry = geom, fill = daily_cases_per_capita), color = "white", size = 0.6, alpha = 0.85) + 
     coord_sf(xlim = c(as.numeric(bbox[1]), as.numeric(bbox[3])), ylim = c(as.numeric(bbox[2]), as.numeric(bbox[4])), expand = FALSE) +
-    scale_fill_gradientn(colors =plot_colors, name = TeX("Cases/100k"), limits = c(0, 250), na.value = "red") + 
+    scale_fill_gradientn(colors =plot_colors, name = TeX("Cases/100k"), limits = c(0, 150), na.value = "red") + 
     theme_bw()+
     theme(axis.title.x=element_blank(),
           axis.text.x=element_blank(),
@@ -977,9 +974,9 @@ grid.arrange(p_per_capita)
 
 
 
-## Mapped County Data   
+## County Data  
 
-While the State-Level Data Tell as remarkable story, it is also interesting to look at County-level data 
+While the State-Level Data tell as remarkable story, outbreaks tend to be highly localized to communities - therefor it's informative to look at County-level data 
 
 
 ```{r, warning = F, message = F, fig.align='center', fig.height =5, fig.width = 9, echo = F, eval = T}
@@ -1077,7 +1074,7 @@ While the State-Level Data Tell as remarkable story, it is also interesting to l
           panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(),
           strip.text = element_text(color = "#154555", size = 12, face = "bold")) +
-    labs(title = str_c('TOTAL COVID-19 CASES PER CAPITA'),
+    labs(title = str_c('Total COVID-19 Cases per 100k Population'),
          subtitle=str_c("NYTimes COVID19 Database: data through ", date_display), "color = cases/100k") +
      annotate(geom="text", x=-70,
              y=25,
@@ -1108,7 +1105,7 @@ While the State-Level Data Tell as remarkable story, it is also interesting to l
  state_abb <- bind_cols(state = state.name, ST = state.abb)
   
   
-  plot_colors <- c("grey99","orangered1", "orangered4")
+  plot_colors <- c("grey96","rosybrown1", "darkred")
   
   
   states <- st_as_sf(map("state", plot = FALSE, fill = TRUE)) %>%
@@ -1178,7 +1175,7 @@ While the State-Level Data Tell as remarkable story, it is also interesting to l
           panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(),
           strip.text = element_text(color = "#154555", size = 12, face = "bold")) +
-    labs(title = str_c('DAILY COVID-19 CASES PER 100K POPULATION'),
+    labs(title = str_c('Daily COVID-19 Cases per 100k Population'),
          subtitle=str_c("Source NYTimes COVID19 Database")) +
      annotate(geom="text", x=-70,
              y=25,
@@ -3155,7 +3152,8 @@ Today is `r today()`.
 `r as.numeric (today()-ymd("2020-10-03"))` days ago: improved national trends with per capita analysis.    
 `r as.numeric (today()-ymd("2020-10-04"))` days ago: added county level per capita daily cases map. testing new color scheme.  
 `r as.numeric (today()-ymd("2020-10-31"))` days ago: changed to daily mortaility tracking from ratio of overall totals.  
-`r as.numeric (today()-ymd("2020-11-07"))` days ago: added trend line to state charts.  
+`r as.numeric (today()-ymd("2020-11-07"))` days ago: added trend line to state charts.   
+`r as.numeric (today()-ymd("2020-12-05"))` days ago: decreased max value of Daily Cases per 100k State map.      
 
 
 
