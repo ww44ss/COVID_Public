@@ -775,7 +775,7 @@ t_cases <-
   ggplot() + 
     geom_sf(data = data_x, aes(geometry = geom, fill = cases), color = "white", size = 0.6, alpha = 0.85) + 
     coord_sf(xlim = c(as.numeric(bbox[1]), as.numeric(bbox[3])), ylim = c(as.numeric(bbox[2]), as.numeric(bbox[4])), expand = FALSE) +
-    scale_fill_gradientn(colors =plot_colors, name = TeX("Cases"), limits = c(0, 1500000), na.value = "blue") + 
+    scale_fill_gradientn(colors =plot_colors, name = "Cases", limits = c(0, 2000000), na.value = "blue") + 
     theme_bw()+
     theme(axis.title.x=element_blank(),
           axis.text.x=element_blank(),
@@ -874,7 +874,7 @@ p_reproduction <-
   ggplot() + 
     geom_sf(data = data_x, aes(geometry = geom, fill = log2(r_e)), color = "white", size = 0.6, alpha = 0.85) + 
     coord_sf(xlim = c(as.numeric(bbox[1]), as.numeric(bbox[3])), ylim = c(as.numeric(bbox[2]), as.numeric(bbox[4])), expand = FALSE) +
-    scale_fill_gradientn(colors =plot_colors2, name = TeX("log_2(R_e)"), limits = c(-0.61, 0.61)) + 
+    scale_fill_gradientn(colors =plot_colors2, name = TeX("log_2(R_e)"), limits = c(-0.75, 0.75), na.value = "blue") + 
     theme_bw()+
     theme(axis.title.x=element_blank(),
           axis.text.x=element_blank(),
@@ -976,7 +976,7 @@ grid.arrange(p_per_capita)
 
 ## County Data  
 
-While the State-Level Data tell as remarkable story, outbreaks tend to be highly localized to communities - therefor it's informative to look at County-level data 
+While the State-Level Data tell as remarkable story, outbreaks tend to be highly localized to communities - County-level data can help decode this. 
 
 
 ```{r, warning = F, message = F, fig.align='center', fig.height =5, fig.width = 9, echo = F, eval = T}
@@ -3153,7 +3153,8 @@ Today is `r today()`.
 `r as.numeric (today()-ymd("2020-10-04"))` days ago: added county level per capita daily cases map. testing new color scheme.  
 `r as.numeric (today()-ymd("2020-10-31"))` days ago: changed to daily mortaility tracking from ratio of overall totals.  
 `r as.numeric (today()-ymd("2020-11-07"))` days ago: added trend line to state charts.   
-`r as.numeric (today()-ymd("2020-12-05"))` days ago: decreased max value of Daily Cases per 100k State map.      
+`r as.numeric (today()-ymd("2020-12-05"))` days ago: decreased max value of Daily Cases per 100k State map.  
+`r as.numeric (today()-ymd("2020-12-12"))` days ago: increased max total state cases to 2,000,000 as California passes 1.5Million diagnosed cases.  
 
 
 
