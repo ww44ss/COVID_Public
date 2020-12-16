@@ -448,9 +448,10 @@ file_name_date_append <- today() %>%
   if(!already_created){
     
     final_plot_data %>% write_csv(str_c(file_name_date))
-    final_plot_data %>% write_csv("Fitted_Modeled_NYT_COVID.csv")
     
-    }
+  }
+   
+  final_plot_data %>% write_csv(str_c(getwd(),"/","Fitted_Modeled_NYT_COVID.csv"))
 ```
 
 
